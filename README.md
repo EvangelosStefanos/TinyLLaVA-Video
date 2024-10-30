@@ -1,1 +1,1 @@
-This repository adds video-QA for Tinyllava_factory.
+This repository adds video-QA for Tinyllava factory.
