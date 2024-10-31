@@ -71,7 +71,7 @@ class LazySupervisedDataset(Dataset):
         elif 'video' in sources:
             video_file = self.list_data_dict[i]['video']
             video_folder = os.path.join(self.data_args.image_folder, video_file)
-            num_frames = 2
+            num_frames = 8
 
             video = EncodedVideo.from_path(video_folder, decoder="decord", decode_audio=False)
             duration = video.duration

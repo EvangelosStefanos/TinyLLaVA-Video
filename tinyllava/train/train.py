@@ -43,6 +43,7 @@ def _load_vision_settings(model_arguments):
 def _load_connector_settings(model_arguments):
     connector_args = {}
     connector_args['connector_type'] = model_arguments.connector_type
+    connector_args['connector_video_type'] = model_arguments.connector_video_type
     return connector_args
 
 

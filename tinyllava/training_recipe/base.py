@@ -27,6 +27,7 @@ class BaseTrainingRecipe:
             model_args['llm'].update(dict(pretrained_llm_path=os.path.join(self.training_arguments.pretrained_model_path, 'language_model')))
             model_args['vision_tower'].update(dict(pretrained_vision_tower_path=os.path.join(self.training_arguments.pretrained_model_path, 'vision_tower')))
             model_args['connector'].update(dict(pretrained_connector_path=os.path.join(self.training_arguments.pretrained_model_path, 'connector')))
+            model_args['connector_video'].update(dict(pretrained_connector_path=os.path.join(self.training_arguments.pretrained_model_path, 'connector_video')))
         return model_args
             
     def tune_type_setting(self, model):
@@ -81,8 +82,12 @@ class BaseTrainingRecipe:
         if tune_type == 'full':
             for p in model.connector.parameters():
                 p.requires_grad = True
+            for p in model.connector_video.parameters():
+                p.requires_grad = True
         elif tune_type == 'frozen':
             for p in model.connector.parameters():
+                p.requires_grad = False
+            for p in model.connector_video.parameters():
                 p.requires_grad = False
         return model
     
@@ -132,6 +137,13 @@ class BaseTrainingRecipe:
             os.makedirs(connector_output_dir, exist_ok=True)
             connector_output_path = os.path.join(self.training_arguments.output_dir, 'connector/pytorch_model.bin')
             torch.save(connector_state_dict, connector_output_path)
+        
+        connector_video_state_dict = get_state_maybe_zero_3(model.connector_video.named_parameters(), [''], False)
+        if trainer.args.local_rank == 0 or trainer.args.local_rank == -1:
+            connector_video_output_dir = os.path.join(self.training_arguments.output_dir, 'connector_video')
+            os.makedirs(connector_video_output_dir, exist_ok=True)
+            connector_video_output_path = os.path.join(self.training_arguments.output_dir, 'connector_video/pytorch_model.bin')
+            torch.save(connector_video_state_dict, connector_video_output_path)
     
 
     def load(self, model, model_args={}):
@@ -139,10 +151,12 @@ class BaseTrainingRecipe:
             model.load_llm(**model_args['llm'])
             model.load_vision_tower(**model_args['vision_tower'])
             model.load_connector(**model_args['connector'])
+            model.load_connector_video(**model_args['connector_video'])
         else:
             model.language_model = model.language_model.from_pretrained(model_args['llm']['model_name_or_path'],attn_implementation='flash_attention_2',torch_dtype=model_args['llm']['torch_dtype'])
             model.load_vision_tower(**model_args['vision_tower'])
             model.load_connector(**model_args['connector'])
+            model.load_connector_video(**model_args['connector_video'])
             model.to(model_args['llm']['torch_dtype'])
             from peft import PeftModel
             print('Loading LoRA weights...')

@@ -56,7 +56,7 @@ def load_pretrained_model(model_name_or_path, load_type='hf', load_8bit=False, l
             print('Merging LoRA weights...')
             model = model.merge_and_unload()
             print('Model is loaded...')
-        
+    
     image_processor = model.vision_tower._image_processor
     context_len = getattr(model.config, 'max_sequence_length', 2048)
     # tokenizer = AutoTokenizer.from_pretrained(model.config.llm_model_name_or_path, use_fast=False, padding_side="right")

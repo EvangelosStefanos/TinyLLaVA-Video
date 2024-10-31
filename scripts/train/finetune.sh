@@ -29,6 +29,7 @@ deepspeed --include localhost:2,3 --master_port 29501 tinyllava/train/train.py \
     --vision_tower $VT_VERSION \
     --vision_tower2 "$VT_VERSION2" \
     --connector_type $CN_VERSION \
+    --connector_video_type resampler \
     --mm_vision_select_layer -2 \
     --image_aspect_ratio square \
     --attn_implementation flash_attention_2 \

@@ -20,8 +20,6 @@ def get_value_from_kwargs(kwargs, name):
         return kwargs.pop(name)
     else:
         return None
-    
-
 
 class TinyLlavaPreTrainedModel(PreTrainedModel):
     config_class = TinyLlavaConfig
@@ -63,6 +61,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         self.language_model = LLMFactory(config.llm_model_name_or_path)[0](config.text_config)
         self.vision_tower = VisionTowerFactory(config.vision_model_name_or_path)(config.vision_config)
         self.connector = ConnectorFactory(config.connector_type)(config)
+        self.connector_video = ConnectorFactory(config.connector_video_type)(config)
 
         (Tokenizer, post_load) = LLMFactory(config.llm_model_name_or_path)[1]
         self.tokenizer = post_load(Tokenizer.from_pretrained(
@@ -208,6 +207,16 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         #print("image_features:",image_features.shape)
         return image_features
     
+    def encode_videos(self, videos):
+        kwargs = {}
+        kwargs['vision_feature_layer'] = self.config.vision_feature_layer
+        kwargs['vision_feature_select_strategy'] = self.config.vision_feature_select_strategy
+        videos = videos.to(device=self.device, dtype=self.dtype)
+        image_features = self.vision_tower(videos, **kwargs)
+        image_features = self.connector_video(image_features)
+        print("encode_videos image_features:",image_features.shape)
+        return image_features
+    
     
     
     def prepare_inputs_for_generation(self, input_ids, past_key_values=None,
@@ -239,7 +248,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             
             image_features = []
             for video in videos:
-                image_feature = self.encode_images(video)
+                image_feature = self.encode_videos(video)
                 image_features.append(image_feature)
                 #print("image_feature:",image_feature.shape)
             image_features = torch.cat(image_features, dim=1)
@@ -400,6 +409,9 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         
     def load_connector(self, **kwargs):
         self.connector.load_model(**kwargs)
+
+    def load_connector_video(self, **kwargs):
+        self.connector_video.load_model(**kwargs)
 
             
 
