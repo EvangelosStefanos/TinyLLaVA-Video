@@ -243,16 +243,16 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         if images is not None:
             image_features = self.encode_images(images)
         elif videos is not None:
-            print("videos:",videos.shape)
+            #print("videos:",videos.shape)
             videos = videos.permute(1, 0, 2, 3, 4)
             
             image_features = []
             for video in videos:
                 image_feature = self.encode_videos(video)
                 image_features.append(image_feature)
-                print("image_feature:",image_feature.shape)
+                #print("image_feature:",image_feature.shape)
             image_features = torch.cat(image_features, dim=1)
-            print("image_features after:",image_features.shape)
+            #print("image_features after:",image_features.shape)
             
 
         # TODO: image start / end is not implemented here to support pretraining.
@@ -285,7 +285,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         cur_image_idx = 0
         for batch_idx, cur_input_ids in enumerate(input_ids):
             num_images = (cur_input_ids == IMAGE_TOKEN_INDEX).sum()
-            print("num_images:",num_images)
+            #print("num_images:",num_images)
             if num_images == 0:
                 cur_image_features = image_features[cur_image_idx]
                 cur_input_embeds_1 = self.language_model.get_input_embeddings()(cur_input_ids)
@@ -406,11 +406,11 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
 
         
     def load_connector(self, **kwargs):
-        print("load_connector!")
+        #print("load_connector!")
         self.connector.load_model(**kwargs)
 
     def load_connector_video(self, **kwargs):
-        print("load_connector_video!")
+        #print("load_connector_video!")
         self.connector_video.load_model(**kwargs)
 
             

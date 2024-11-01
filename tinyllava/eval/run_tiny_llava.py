@@ -7,6 +7,9 @@ from io import BytesIO
 import torch
 from transformers import PreTrainedModel
 from pytorchvideo.data.encoded_video import EncodedVideo
+from torchvision.transforms import functional as F
+from torchvision.io import read_video
+import cv2
 
 from tinyllava.utils import *
 from tinyllava.data import *
@@ -41,7 +44,7 @@ def load_images(image_files):
 def save_frames(frames, save_dir="/data/vlm/zxj/demo"):
     os.makedirs(save_dir, exist_ok=True)
     for i, frame in enumerate(frames):
-        img = Image.fromarray((frame.cpu().numpy().transpose(1, 2, 0) * 255).astype('uint8'))
+        img = Image.fromarray((frame.cpu().numpy().transpose(1, 2, 0)).astype('uint8'))
         img.save(os.path.join(save_dir, f"frame_{i}.png"))
 
 def eval_model(args):
@@ -64,7 +67,6 @@ def eval_model(args):
 
     text_processor = TextPreprocess(tokenizer, args.conv_mode)
     data_args = model.config
-    video_processor = VideoPreprocess(image_processor, data_args)
     image_processor = ImagePreprocess(image_processor, data_args)
 
     model.cuda()
@@ -91,8 +93,9 @@ def eval_model(args):
         video = EncodedVideo.from_path(args.video_file, decoder="decord", decode_audio=False)
         duration = video.duration
         video_data = video.get_clip(start_sec=0.0, end_sec=duration)
-        video_data = video_data['video'].permute(1, 0, 2, 3)
-            
+        video_data = video_data['video'].permute(1, 0, 2, 3) #torch.Size([l, 3, W, H])
+        print("video.max:",video_data.max())
+
         total_frames = video_data.shape[0]
         frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
         video_data = video_data[frame_indices]
@@ -100,7 +103,7 @@ def eval_model(args):
 
         videos = []
         for video in video_data:
-            video = video_processor(video)
+            video = image_processor(video)
             videos.append(video)
         video_tensor = torch.stack(videos)
         video_tensor = video_tensor.unsqueeze(dim=0)

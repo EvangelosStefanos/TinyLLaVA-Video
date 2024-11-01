@@ -4,7 +4,7 @@ import json
 from typing import Dict,  Sequence, TYPE_CHECKING
 from PIL import Image, ImageFile
 import os
-
+import cv2
 from .text_preprocess import TextPreprocess
 from .image_preprocess import ImagePreprocess
 from .video_preprocess import VideoPreprocess
@@ -37,7 +37,7 @@ class LazySupervisedDataset(Dataset):
         self.data_args = data_args
         self.text_preprocess = TextPreprocess(tokenizer, data_args.conv_version)
         self.image_preprocess = ImagePreprocess(data_args.image_processor, data_args)
-        self.video_preprocess = VideoPreprocess(data_args.image_processor, data_args)
+        #self.video_preprocess = VideoPreprocess(data_args.image_processor, data_args)
 
     def __len__(self):
         return len(self.list_data_dict)
@@ -80,13 +80,14 @@ class LazySupervisedDataset(Dataset):
             
             total_frames = video_data.shape[0]
             frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
-            video_data = video_data[frame_indices]
+            video_data = video_data[frame_indices] #torch.Size([8, 3, W, H])
 
             videos = []
             for video in video_data:
-                video = self.video_preprocess(video)
+                video = self.image_preprocess(video)
                 videos.append(video)
             videos = torch.stack(videos)
+
             #print("video after preprocess:",videos.shape)
             data_dict['video'] = videos
         elif self.data_args.is_multimodal:
