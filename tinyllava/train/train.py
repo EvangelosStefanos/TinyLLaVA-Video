@@ -23,7 +23,8 @@ def load_settings(model_arguments, data_arguments, training_arguments):
     model_args = {}
     model_args['llm'] = _load_llm_settings(model_arguments)
     model_args['vision_tower'] = _load_vision_settings(model_arguments)
-    model_args['connector'] = _load_connector_settings(model_arguments) 
+    model_args['connector'] = _load_connector_settings(model_arguments)
+    model_args['connector_video'] = _load_connector_video_settings(model_arguments)  
     return model_args
 
 def _load_llm_settings(model_arguments):
@@ -43,8 +44,12 @@ def _load_vision_settings(model_arguments):
 def _load_connector_settings(model_arguments):
     connector_args = {}
     connector_args['connector_type'] = model_arguments.connector_type
-    connector_args['connector_video_type'] = model_arguments.connector_video_type
     return connector_args
+
+def _load_connector_video_settings(model_arguments):
+    connector_video_args = {}
+    connector_video_args['connector_video_type'] = model_arguments.connector_video_type
+    return connector_video_args
 
 
 def train():
@@ -63,6 +68,7 @@ def train():
     model_config = TinyLlavaConfig()
     model_config.load_from_config(model_arguments)
     model = TinyLlavaForConditionalGeneration(model_config)
+    model.to('cuda')
     # load pretrained checkpoint
     if training_arguments.pretrained_model_path is not None:
         model = training_recipe.load(model, model_args)
@@ -70,7 +76,7 @@ def train():
         model.load_llm(**model_args['llm'])
         model.load_vision_tower(**model_args['vision_tower'])
         model.load_connector(**model_args['connector'])
-
+        model.load_connector_video(**model_args['connector_video'])
     model = training_recipe(model)
     model.config.use_cache = False
     model.config.image_aspect_ratio = data_arguments.image_aspect_ratio

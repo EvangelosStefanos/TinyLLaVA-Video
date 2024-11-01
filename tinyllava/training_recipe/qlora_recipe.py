@@ -20,7 +20,7 @@ class QLoRAInt8TrainingRecipe(BaseTrainingRecipe):
     def __init__(self, training_arguments):
         super().__init__(training_arguments)
         self.training_arguments = training_arguments
-        self.lora_skip_module = ['connector', 'vision_tower', 'language_model']
+        self.lora_skip_module = ['connector', 'connector_video', 'vision_tower', 'language_model']
 
         
     def add_args(self, model_args):
@@ -39,12 +39,14 @@ class QLoRAInt8TrainingRecipe(BaseTrainingRecipe):
             model_args['llm'].update(dict(pretrained_llm_path=os.path.join(self.training_arguments.pretrained_model_path, 'language_model')))
             model_args['vision_tower'].update(dict(pretrained_vision_tower_path=os.path.join(self.training_arguments.pretrained_model_path, 'vision_tower')))
             model_args['connector'].update(dict(pretrained_connector_path=os.path.join(self.training_arguments.pretrained_model_path, 'connector')))
+            model_args['connector_video'].update(dict(pretrained_connector_path=os.path.join(self.training_arguments.pretrained_model_path, 'connector_video')))
         return model_args
 
 
     def training_model_converse(self, model):
         if self.training_arguments.tune_type_connector == 'qlora':
             self.lora_skip_module.remove('connector')
+            self.lora_skip_module.remove('connector_video')
         if self.training_arguments.tune_type_llm == 'qlora':
             self.lora_skip_module.remove('language_model')
         if self.training_arguments.tune_type_vision_tower == 'qlora':
@@ -99,6 +101,14 @@ class QLoRAInt8TrainingRecipe(BaseTrainingRecipe):
             os.makedirs(connector_output_dir, exist_ok=True)
             connector_output_path = os.path.join(self.training_arguments.output_dir, 'connector/pytorch_model.bin')
             torch.save(connector_state_dict, connector_output_path)
+
+        connector_video_state_dict = get_peft_state_non_lora_maybe_zero_3(model.connector_video.named_parameters(),  False)
+        if trainer.args.local_rank == 0 or trainer.args.local_rank == -1:
+            connector_video_output_dir = os.path.join(self.training_arguments.output_dir, 'connector_video')
+            os.makedirs(connector_video_output_dir, exist_ok=True)
+            connector_video_output_path = os.path.join(self.training_arguments.output_dir, 'connector_video/pytorch_model.bin')
+            torch.save(connector_video_state_dict, connector_video_output_path)
+
         # save lora params
         lora_state_dict = get_peft_state_maybe_zero_3(
             model.named_parameters(), self.training_arguments.lora_bias

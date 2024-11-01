@@ -164,7 +164,8 @@ class BaseTrainingRecipe:
             print('Merging LoRA weights...')
             model = model.merge_and_unload()
             print('Model is loaded...')
-
+            
+        #model.to('cuda')
         return model
         
     

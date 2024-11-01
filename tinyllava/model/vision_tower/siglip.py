@@ -15,6 +15,4 @@ class SIGLIPVisionTower(VisionTower):
 #    def forward(self, x, **kwargs):
 #        image_features = self._vision_tower(x, output_hidden_states=True)
 #        image_features = image_features.hidden_states[kwargs.get('vision_feature_layer', -2)]
-
-
 #        return image_features

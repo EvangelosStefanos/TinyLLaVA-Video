@@ -154,7 +154,8 @@ class LLaVATrainer(Trainer):
             decay_parameters = get_parameter_names(opt_model, ALL_LAYERNORM_LAYERS)
             decay_parameters = [name for name in decay_parameters if "bias" not in name]
             if self.args.mm_projector_lr is not None:
-                connector_parameters = [name for name, _ in opt_model.named_parameters() if "connector" in name]
+                connector_parameters = [name for name, _ in opt_model.named_parameters() if "connector" in name or "connector_video" in name]
+                print("connector_parameters:",connector_parameters)
                 optimizer_grouped_parameters = [
                     {
                         "params": [

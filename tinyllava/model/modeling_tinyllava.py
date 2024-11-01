@@ -121,8 +121,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple, CausalLMOutputWithPast]:
         use_cache = use_cache if use_cache is not None else self.config.use_cache
-        #video.requires_grad_(True)
-        #print("input_ids:",input_ids.shape)
+
         if inputs_embeds is None:
             (
                 input_ids,
@@ -141,7 +140,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
                 video,
                 image_sizes
             )
-        #print("inputs_embeds:",inputs_embeds.shape)
+        
         return self.language_model.forward(
             input_ids=input_ids,
             attention_mask=attention_mask,
@@ -161,6 +160,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         self,
         inputs: Optional[torch.Tensor] = None,
         images: Optional[torch.Tensor] = None,
+        video: Optional[torch.Tensor] = None,
         image_sizes: Optional[torch.Tensor] = None,
         **kwargs,
     ) -> Union[GenerateOutput, torch.LongTensor]:
@@ -169,7 +169,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         if "inputs_embeds" in kwargs:
             raise NotImplementedError("`inputs_embeds` is not supported")
 
-        if images is not None:
+        if images is not None or video is not None:
             (
                 inputs,
                 position_ids,
@@ -214,7 +214,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         videos = videos.to(device=self.device, dtype=self.dtype)
         image_features = self.vision_tower(videos, **kwargs)
         image_features = self.connector_video(image_features)
-        print("encode_videos image_features:",image_features.shape)
+        #print("encode_videos image_features:",image_features.shape)
         return image_features
     
     
@@ -243,16 +243,16 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         if images is not None:
             image_features = self.encode_images(images)
         elif videos is not None:
+            print("videos:",videos.shape)
             videos = videos.permute(1, 0, 2, 3, 4)
-            #print("videos:",videos.shape)
             
             image_features = []
             for video in videos:
                 image_feature = self.encode_videos(video)
                 image_features.append(image_feature)
-                #print("image_feature:",image_feature.shape)
+                print("image_feature:",image_feature.shape)
             image_features = torch.cat(image_features, dim=1)
-            #print("image_features after:",image_features.shape)
+            print("image_features after:",image_features.shape)
             
 
         # TODO: image start / end is not implemented here to support pretraining.
@@ -285,7 +285,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         cur_image_idx = 0
         for batch_idx, cur_input_ids in enumerate(input_ids):
             num_images = (cur_input_ids == IMAGE_TOKEN_INDEX).sum()
-            #print("num_images:",num_images)
+            print("num_images:",num_images)
             if num_images == 0:
                 cur_image_features = image_features[cur_image_idx]
                 cur_input_embeds_1 = self.language_model.get_input_embeddings()(cur_input_ids)
@@ -379,9 +379,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             position_ids = None
 
         return None, position_ids, attention_mask, past_key_values, new_input_embeds, new_labels
-    
 
-    
     
     def load_llm(self, **kwargs):
         language_model_name = get_value_from_kwargs(kwargs, 'model_name_or_path')
@@ -408,9 +406,11 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
 
         
     def load_connector(self, **kwargs):
+        print("load_connector!")
         self.connector.load_model(**kwargs)
 
     def load_connector_video(self, **kwargs):
+        print("load_connector_video!")
         self.connector_video.load_model(**kwargs)
 
             

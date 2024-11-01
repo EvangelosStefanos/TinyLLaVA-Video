@@ -6,6 +6,7 @@ from io import BytesIO
 
 import torch
 from transformers import PreTrainedModel
+from pytorchvideo.data.encoded_video import EncodedVideo
 
 from tinyllava.utils import *
 from tinyllava.data import *
@@ -14,6 +15,10 @@ from tinyllava.model import *
 
 def image_parser(args):
     out = args.image_file.split(args.sep)
+    return out
+
+def video_parser(args):
+    out = args.video_file.split(args.sep)
     return out
 
 
@@ -33,6 +38,11 @@ def load_images(image_files):
         out.append(image)
     return out
 
+def save_frames(frames, save_dir="/data/vlm/zxj/demo"):
+    os.makedirs(save_dir, exist_ok=True)
+    for i, frame in enumerate(frames):
+        img = Image.fromarray((frame.cpu().numpy().transpose(1, 2, 0) * 255).astype('uint8'))
+        img.save(os.path.join(save_dir, f"frame_{i}.png"))
 
 def eval_model(args):
     # Model
@@ -54,7 +64,9 @@ def eval_model(args):
 
     text_processor = TextPreprocess(tokenizer, args.conv_mode)
     data_args = model.config
+    video_processor = VideoPreprocess(image_processor, data_args)
     image_processor = ImagePreprocess(image_processor, data_args)
+
     model.cuda()
 
     msg = Message()
@@ -64,14 +76,34 @@ def eval_model(args):
     input_ids = result['input_ids']
     prompt = result['prompt']
     input_ids = input_ids.unsqueeze(0).cuda()
-        
-
-    image_files = image_parser(args)
-    images = load_images(image_files)[0]
-    images_tensor = image_processor(images)
-    images_tensor = images_tensor.unsqueeze(0).half().cuda()
-
     
+    images_tensor = None
+    video_tensor = None
+    if args.image_file is not None:
+        image_files = image_parser(args)
+        images = load_images(image_files)[0]
+        images_tensor = image_processor(images)
+        images_tensor = images_tensor.unsqueeze(0).half().cuda()
+    
+    if args.video_file is not None:
+        num_frames = 8
+
+        video = EncodedVideo.from_path(args.video_file, decoder="decord", decode_audio=False)
+        duration = video.duration
+        video_data = video.get_clip(start_sec=0.0, end_sec=duration)
+        video_data = video_data['video'].permute(1, 0, 2, 3)
+            
+        total_frames = video_data.shape[0]
+        frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
+        video_data = video_data[frame_indices]
+        save_frames(video_data)
+
+        videos = []
+        for video in video_data:
+            video = video_processor(video)
+            videos.append(video)
+        video_tensor = torch.stack(videos)
+        video_tensor = video_tensor.unsqueeze(dim=0)
 
     stop_str = text_processor.template.separator.apply()[1]
     keywords = [stop_str]
@@ -81,6 +113,7 @@ def eval_model(args):
         output_ids = model.generate(
             input_ids,
             images=images_tensor,
+            video=video_tensor,
             do_sample=True if args.temperature > 0 else False,
             temperature=args.temperature,
             top_p=args.top_p,

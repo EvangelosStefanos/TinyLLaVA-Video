@@ -16,12 +16,12 @@ VERSION="$7"
 TRAIN_RECIPE="$8"
 MODEL_MAX_LENGTH="$9"
 
-VT_VARIANT="${VT_VERSION#*/}"
+VT_VARIANT="${VT_VERSION##*/}"
 LLM_VARIANT="${LLM_VERSION##*/}"
 
-deepspeed --include localhost:2,3 --master_port 29501 tinyllava/train/train.py \
+deepspeed --include localhost:3,4 --master_port 29501 tinyllava/train/train.py \
     --deepspeed ./scripts/zero3.json \
-    --data_path  $DATA_PATH\
+    --data_path  $DATA_PATH \
     --image_folder $IMAGE_PATH \
     --is_multimodal True \
     --conv_version pretrain \
