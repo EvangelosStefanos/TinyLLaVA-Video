@@ -204,16 +204,17 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         images = images.to(device=self.device, dtype=self.dtype)
         image_features = self.vision_tower(images, **kwargs)
         image_features = self.connector(image_features)
-        #print("image_features:",image_features.shape)
         return image_features
     
     def encode_videos(self, videos):
         kwargs = {}
         kwargs['vision_feature_layer'] = self.config.vision_feature_layer
         kwargs['vision_feature_select_strategy'] = self.config.vision_feature_select_strategy
-        videos = videos.to(device=self.device, dtype=self.dtype)
-        image_features = self.vision_tower(videos, **kwargs)
-        image_features = self.connector_video(image_features)
+        videos = videos.to(device=self.device, dtype=self.dtype) #torch.Size([bs, 3, 384, 384])
+        #print("encode_images videos:",videos.shape)
+        image_features = self.vision_tower(videos, **kwargs) #torch.Size([bs, 728, 1152])
+        #print("encode_images image_features after vt:",image_features.shape)
+        image_features = self.connector_video(image_features) #torch.Size([bs, 128, 2560])
         #print("encode_videos image_features:",image_features.shape)
         return image_features
     
@@ -243,16 +244,14 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         if images is not None:
             image_features = self.encode_images(images)
         elif videos is not None:
-            #print("videos:",videos.shape)
             videos = videos.permute(1, 0, 2, 3, 4)
             
             image_features = []
             for video in videos:
                 image_feature = self.encode_videos(video)
                 image_features.append(image_feature)
-                #print("image_feature:",image_feature.shape)
-            image_features = torch.cat(image_features, dim=1)
-            #print("image_features after:",image_features.shape)
+            image_features = torch.cat(image_features, dim=1) #torch.Size([bs, 1024=128*8, 2560])
+            #print("image_features after encode_videos:",image_features.shape)
             
 
         # TODO: image start / end is not implemented here to support pretraining.
@@ -284,7 +283,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         new_labels = []
         cur_image_idx = 0
         for batch_idx, cur_input_ids in enumerate(input_ids):
-            num_images = (cur_input_ids == IMAGE_TOKEN_INDEX).sum()
+            num_images = (cur_input_ids == IMAGE_TOKEN_INDEX).sum() #1
             #print("num_images:",num_images)
             if num_images == 0:
                 cur_image_features = image_features[cur_image_idx]
@@ -295,15 +294,18 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
                 cur_image_idx += 1
                 continue
 
-            image_token_indices = [-1] + torch.where(cur_input_ids == IMAGE_TOKEN_INDEX)[0].tolist() + [cur_input_ids.shape[0]]
+            image_token_indices = [-1] + torch.where(cur_input_ids == IMAGE_TOKEN_INDEX)[0].tolist() + [cur_input_ids.shape[0]] #[-1, 0, len]
+            #print("image_token_indices:",image_token_indices)
             cur_input_ids_noim = []
             cur_labels = labels[batch_idx]
             cur_labels_noim = []
             for i in range(len(image_token_indices) - 1):
                 cur_input_ids_noim.append(cur_input_ids[image_token_indices[i]+1:image_token_indices[i+1]])
                 cur_labels_noim.append(cur_labels[image_token_indices[i]+1:image_token_indices[i+1]])
-            split_sizes = [x.shape[0] for x in cur_labels_noim]
-            cur_input_embeds = self.language_model.get_input_embeddings()(torch.cat(cur_input_ids_noim))
+            split_sizes = [x.shape[0] for x in cur_labels_noim] #[0, len-1]
+            #print("split_sizes:",split_sizes)
+            cur_input_embeds = self.language_model.get_input_embeddings()(torch.cat(cur_input_ids_noim)) #torch.Size([len-1, 2560])
+            #print("cur_input_embeds:",cur_input_embeds.shape)
             cur_input_embeds_no_im = torch.split(cur_input_embeds, split_sizes, dim=0)
             cur_new_input_embeds = []
             cur_new_labels = []
@@ -312,15 +314,18 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
                 cur_new_input_embeds.append(cur_input_embeds_no_im[i])
                 cur_new_labels.append(cur_labels_noim[i])
                 if i < num_images:
-                    cur_image_features = image_features[cur_image_idx]
+                    cur_image_features = image_features[cur_image_idx] #torch.Size([1024, 2560])
+                    #print("cur_image_features:",cur_image_features.shape)
                     cur_image_idx += 1
                     cur_new_input_embeds.append(cur_image_features)
                     cur_new_labels.append(torch.full((cur_image_features.shape[0],), IGNORE_INDEX, device=cur_labels.device, dtype=cur_labels.dtype))
 
             cur_new_input_embeds = [x.to(self.device) for x in cur_new_input_embeds]
 
-            cur_new_input_embeds = torch.cat(cur_new_input_embeds)
-            cur_new_labels = torch.cat(cur_new_labels)
+            cur_new_input_embeds = torch.cat(cur_new_input_embeds) #torch.Size([1024+len-1, 2560])
+            #print("cur_new_input_embeds:",cur_new_input_embeds.shape)
+            cur_new_labels = torch.cat(cur_new_labels) #torch.Size([1024+len-1])
+            #print("cur_new_labels:",cur_new_labels.shape)
 
             new_input_embeds.append(cur_new_input_embeds)
             new_labels.append(cur_new_labels)
@@ -333,14 +338,18 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             new_labels = [x[:tokenizer_model_max_length] for x in new_labels]
 
         # Combine them
-        max_len = max(x.shape[0] for x in new_input_embeds)
+        max_len = max(x.shape[0] for x in new_input_embeds) #1353,1429...
         #print("max_len:",max_len)
-        batch_size = len(new_input_embeds)
+        batch_size = len(new_input_embeds) #bs=16
+        #print("batch_size:",batch_size)
 
         new_input_embeds_padded = []
-        new_labels_padded = torch.full((batch_size, max_len), IGNORE_INDEX, dtype=new_labels[0].dtype, device=new_labels[0].device)
-        attention_mask = torch.zeros((batch_size, max_len), dtype=attention_mask.dtype, device=attention_mask.device)
-        position_ids = torch.zeros((batch_size, max_len), dtype=position_ids.dtype, device=position_ids.device)
+        new_labels_padded = torch.full((batch_size, max_len), IGNORE_INDEX, dtype=new_labels[0].dtype, device=new_labels[0].device) #torch.Size([bs, max_len])
+        #print("new_labels_padded:",new_labels_padded.shape)
+        attention_mask = torch.zeros((batch_size, max_len), dtype=attention_mask.dtype, device=attention_mask.device) #torch.Size([bs, max_len])
+        #print("attention_mask:",attention_mask.shape)
+        position_ids = torch.zeros((batch_size, max_len), dtype=position_ids.dtype, device=position_ids.device) #torch.Size([bs, max_len])
+        #print("position_ids:",position_ids.shape)
 
         for i, (cur_new_embed, cur_new_labels) in enumerate(zip(new_input_embeds, new_labels)):
             cur_len = cur_new_embed.shape[0]
@@ -363,7 +372,8 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
                     attention_mask[i, :cur_len] = True
                     position_ids[i, :cur_len] = torch.arange(0, cur_len, dtype=position_ids.dtype, device=position_ids.device)
 
-        new_input_embeds = torch.stack(new_input_embeds_padded, dim=0)
+        new_input_embeds = torch.stack(new_input_embeds_padded, dim=0) #torch.Size([bs, max_len, 2560])
+        #print("new_input_embeds:",new_input_embeds.shape)
 
         if _labels is None:
             new_labels = None

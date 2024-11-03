@@ -19,7 +19,7 @@ MODEL_MAX_LENGTH="${10}"
 VT_VARIANT="${VT_VERSION##*/}"
 LLM_VARIANT="${LLM_VERSION##*/}"
 
-deepspeed --include localhost:3,4 --master_port 29505 tinyllava/train/train.py \
+deepspeed --include localhost:2,3,4,5 --master_port 29501 tinyllava/train/train.py \
     --deepspeed ./scripts/zero2.json \
     --data_path  $DATA_PATH \
     --image_folder $IMAGE_PATH \

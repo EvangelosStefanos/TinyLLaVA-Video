@@ -1,8 +1,8 @@
 from tinyllava.eval.run_tiny_llava import eval_model
 
-model_path = "/data/vlm/zxj/result/llava_factory-10.31/tiny-llava-phi-2-siglip-so400m-patch14-384-base-finetune"
+model_path = "/data/vlm/zxj/result/llava_video_factory/tiny-llava-phi-2-siglip-so400m-patch14-384-base-finetune"
 prompt = "What are the people in the video doing?"
-video_file = "/data/vlm/zxj/demo1.mp4"
+video_file = "/data/vlm/zxj/demo.mp4"
 conv_mode = "phi" # or llama, gemma, etc
 
 args = type('Args', (), {

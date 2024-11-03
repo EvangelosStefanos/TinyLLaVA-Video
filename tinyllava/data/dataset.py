@@ -75,7 +75,10 @@ class LazySupervisedDataset(Dataset):
 
             video = EncodedVideo.from_path(video_folder, decoder="decord", decode_audio=False)
             duration = video.duration
-            video_data = video.get_clip(start_sec=0.0, end_sec=duration)
+            try:
+                video_data = video.get_clip(start_sec=0.0, end_sec=duration)
+            except Exception as e:
+                print(f"Corrupted video found: {video_folder}, Error: {e}")
             video_data = video_data['video'].permute(1, 0, 2, 3)
             
             total_frames = video_data.shape[0]

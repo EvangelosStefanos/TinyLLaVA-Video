@@ -3,8 +3,8 @@
 #IMAGE_PATH=/data/vlm/llava_data/llava/llava_pretrain/images #pretrain image dir
 #FINETUNE_IMAGE_PATH=/data/vlm/llava_data #finetune image dir
 
-DATA_PATH=/data/vlm/zxj/data/mm_data/LLaVA-Video-178K/merge_data/0_30_s_academic_v0_1_cap_processed_del.json #pretrain annotation file path
-FINETUNE_DATA_PATH=/data/vlm/zxj/data/mm_data/LLaVA-Video-178K/merge_data/0_30_s_academic_oe_v0_1_qa_processed_del.json #finetune annotation file path
+DATA_PATH=/data/vlm/zxj/data/mm_data/LLaVA-Video-178K/merge_data/caption.json #pretrain annotation file path
+FINETUNE_DATA_PATH=/data/vlm/zxj/data/mm_data/LLaVA-Video-178K/merge_data/openqa.json #finetune annotation file path
 IMAGE_PATH=/data/vlm/zxj/data/mm_data/LLaVA-Video-178K/merge_data #pretrain image dir
 FINETUNE_IMAGE_PATH=/data/vlm/zxj/data/mm_data/LLaVA-Video-178K/merge_data #finetune image dir
 
