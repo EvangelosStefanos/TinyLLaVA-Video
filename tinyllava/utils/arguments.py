@@ -44,6 +44,7 @@ class DataArguments:
     image_folder: Optional[str] = field(default=None)
     image_aspect_ratio: str = 'square'
     conv_version: str = 'pretrain'
+    num_frames: int = 16
 
 
 @dataclass

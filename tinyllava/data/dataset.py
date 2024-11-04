@@ -35,6 +35,7 @@ class LazySupervisedDataset(Dataset):
         self.tokenizer = tokenizer
         self.list_data_dict = list_data_dict
         self.data_args = data_args
+        self.num_frames = data_args.num_frames
         self.text_preprocess = TextPreprocess(tokenizer, data_args.conv_version)
         self.image_preprocess = ImagePreprocess(data_args.image_processor, data_args)
         #self.video_preprocess = VideoPreprocess(data_args.image_processor, data_args)
@@ -71,7 +72,6 @@ class LazySupervisedDataset(Dataset):
         elif 'video' in sources:
             video_file = self.list_data_dict[i]['video']
             video_folder = os.path.join(self.data_args.image_folder, video_file)
-            num_frames = 8
 
             video = EncodedVideo.from_path(video_folder, decoder="decord", decode_audio=False)
             duration = video.duration
@@ -81,8 +81,9 @@ class LazySupervisedDataset(Dataset):
                 print(f"Corrupted video found: {video_folder}, Error: {e}")
             video_data = video_data['video'].permute(1, 0, 2, 3)
             
+            #print("num_frames:",self.num_frames)
             total_frames = video_data.shape[0]
-            frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
+            frame_indices = np.linspace(0, total_frames - 1, self.num_frames, dtype=int)
             video_data = video_data[frame_indices] #torch.Size([8, 3, W, H])
 
             videos = []
