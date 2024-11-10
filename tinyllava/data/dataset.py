@@ -38,7 +38,7 @@ class LazySupervisedDataset(Dataset):
         self.num_frames = data_args.num_frames
         self.text_preprocess = TextPreprocess(tokenizer, data_args.conv_version)
         self.image_preprocess = ImagePreprocess(data_args.image_processor, data_args)
-        #self.video_preprocess = VideoPreprocess(data_args.image_processor, data_args)
+        self.video_preprocess = VideoPreprocess(data_args.image_processor, data_args)
 
     def __len__(self):
         return len(self.list_data_dict)
@@ -88,7 +88,7 @@ class LazySupervisedDataset(Dataset):
 
             videos = []
             for video in video_data:
-                video = self.image_preprocess(video)
+                video = self.video_preprocess(video)
                 videos.append(video)
             videos = torch.stack(videos)
 

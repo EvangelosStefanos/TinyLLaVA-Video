@@ -88,13 +88,13 @@ def eval_model(args):
         images_tensor = images_tensor.unsqueeze(0).half().cuda()
     
     if args.video_file is not None:
-        num_frames = 8
+        num_frames = args.num_frame
 
         video = EncodedVideo.from_path(args.video_file, decoder="decord", decode_audio=False)
         duration = video.duration
         video_data = video.get_clip(start_sec=0.0, end_sec=duration)
         video_data = video_data['video'].permute(1, 0, 2, 3) #torch.Size([l, 3, W, H])
-        print("video.max:",video_data.max())
+        #print("video.max:",video_data.max())
 
         total_frames = video_data.shape[0]
         frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
@@ -148,6 +148,7 @@ if __name__ == "__main__":
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument("--top_p", type=float, default=None)
     parser.add_argument("--num_beams", type=int, default=1)
+    parser.add_argument("--num_frame", type=int, default=1)
     parser.add_argument("--max_new_tokens", type=int, default=512)
     args = parser.parse_args()
 

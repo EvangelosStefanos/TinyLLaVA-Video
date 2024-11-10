@@ -19,8 +19,8 @@ MODEL_MAX_LENGTH="${10}"
 VT_VARIANT="${VT_VERSION##*/}"
 LLM_VARIANT="${LLM_VERSION##*/}"
 
-deepspeed --include localhost:2,3,4,5 --master_port 29501 tinyllava/train/train.py \
-    --deepspeed ./scripts/zero2.json \
+deepspeed --include localhost:4,5,6,7 --master_port 29501 tinyllava/train/train.py \
+    --deepspeed ./scripts/zero3.json \
     --data_path  $DATA_PATH \
     --image_folder $IMAGE_PATH \
     --is_multimodal True \
@@ -43,7 +43,7 @@ deepspeed --include localhost:2,3,4,5 --master_port 29501 tinyllava/train/train.
     --pretrained_model_path /data/vlm/zxj/result/llava_video_factory/tiny-llava-${LLM_VARIANT}-${VT_VARIANT}-${VERSION}-pretrain \
     --output_dir /data/vlm/zxj/result/llava_video_factory/tiny-llava-${LLM_VARIANT}-${VT_VARIANT}-${VERSION}-finetune \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 8 \
+    --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 4 \
     --gradient_accumulation_steps 4 \
     --evaluation_strategy "no" \

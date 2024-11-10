@@ -211,11 +211,21 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         kwargs['vision_feature_layer'] = self.config.vision_feature_layer
         kwargs['vision_feature_select_strategy'] = self.config.vision_feature_select_strategy
         videos = videos.to(device=self.device, dtype=self.dtype) #torch.Size([bs, 3, 384, 384])
+        """
         #print("encode_images videos:",videos.shape)
         image_features = self.vision_tower(videos, **kwargs) #torch.Size([bs, 728, 1152])
         #print("encode_images image_features after vt:",image_features.shape)
         image_features = self.connector_video(image_features) #torch.Size([bs, 128, 2560])
         #print("encode_videos image_features:",image_features.shape)
+        """
+        image_features = []
+        for video in videos:
+            image_feature = self.vision_tower(video, **kwargs)
+            image_features.append(image_feature)
+        image_features = torch.cat(image_features, dim=1) #torch.Size([bs, 728*8, 1152])
+        #print("encode_videos image_features after vt:",image_features.shape)
+        image_features = self.connector_video(image_features) #torch.Size([bs, 512, 2560])
+        #print("encode_videos image_features:",image_features.shape) 
         return image_features
     
     
@@ -245,12 +255,14 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             image_features = self.encode_images(images)
         elif videos is not None:
             videos = videos.permute(1, 0, 2, 3, 4)
-            
+            """
             image_features = []
             for video in videos:
                 image_feature = self.encode_videos(video)
                 image_features.append(image_feature)
             image_features = torch.cat(image_features, dim=1) #torch.Size([bs, 1024=128*8, 2560])
+            """
+            image_features = self.encode_videos(videos)
             #print("image_features after encode_videos:",image_features.shape)
             
 
@@ -276,6 +288,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
 
         # remove the padding using attention_mask -- FIXME
         _input_ids = input_ids
+        #print("input_ids:",input_ids.shape)
         input_ids = [cur_input_ids[cur_attention_mask] for cur_input_ids, cur_attention_mask in zip(input_ids, attention_mask)]
         labels = [cur_labels[cur_attention_mask] for cur_labels, cur_attention_mask in zip(labels, attention_mask)]
 

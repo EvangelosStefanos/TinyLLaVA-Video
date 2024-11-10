@@ -16,11 +16,11 @@ VERSION="$7"
 TRAIN_RECIPE="$8"
 MODEL_MAX_LENGTH="$9"
 
-VT_VARIANT="${VT_VERSION#*/}"
-LLM_VARIANT="${LLM_VERSION#*/}"
+VT_VARIANT="${VT_VERSION##*/}"
+LLM_VARIANT="${LLM_VERSION##*/}"
 
-deepspeed --include localhost:0,1,2,3,4,5,6,7 --master_port 29501 tinyllava/train/train.py \
-    --deepspeed ./scripts/zero3.json \
+deepspeed --include localhost:4,5,6,7 --master_port 29501 tinyllava/train/train.py \
+    --deepspeed ./scripts/zero2.json \
     --data_path  $DATA_PATH\
     --image_folder $IMAGE_PATH \
     --is_multimodal True \
@@ -29,6 +29,7 @@ deepspeed --include localhost:0,1,2,3,4,5,6,7 --master_port 29501 tinyllava/trai
     --vision_tower $VT_VERSION \
     --vision_tower2 "$VT_VERSION2" \
     --connector_type $CN_VERSION \
+    --connector_video_type resampler \
     --mm_vision_select_layer -2 \
     --image_aspect_ratio square \
     --attn_implementation flash_attention_2 \
@@ -38,16 +39,16 @@ deepspeed --include localhost:0,1,2,3,4,5,6,7 --master_port 29501 tinyllava/trai
     --tune_type_vision_tower frozen \
     --tune_vision_tower_from_layer 0 \
     --tune_type_connector full \
-    --output_dir /mnt/data/sata/yinghu/checkpoints/llava_factory/tiny-llava-${LLM_VARIANT}-${VT_VARIANT}-${VERSION}-pretrain \
+    --output_dir /data/vlm/zxj/result/llava_video_factory/tiny-llava-${LLM_VARIANT}-${VT_VARIANT}-${VERSION}-pretrain \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 16 \
+    --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 4 \
     --gradient_accumulation_steps 2 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 24000 \
     --save_total_limit 1 \
-    --learning_rate 1e-3 \
+    --learning_rate 1e-4 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \

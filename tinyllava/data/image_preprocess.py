@@ -22,12 +22,8 @@ class ImagePreprocess:
         elif self.image_aspect_ratio == "anyres":
             image = self.process_anyres_image(image, self.image_processor, self.image_grid_pinpoints)
             return image
-        
-        if image.max() > 1:
-            image = self.image_processor(image, return_tensors='pt')['pixel_values'][0]
-        else:
-            image = self.image_processor(image, return_tensors='pt', do_rescale=False)['pixel_values'][0]
-        #image = self.image_processor(image, return_tensors='pt')['pixel_values'][0]
+    
+        image = self.image_processor(image, return_tensors='pt')['pixel_values'][0]
         return image
 
     @classmethod

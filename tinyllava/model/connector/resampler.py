@@ -13,11 +13,15 @@ class PerceiverResampler(nn.Module):
     def __init__(self, config):
         super().__init__()
         dim = config.hidden_size
-        depth=config.num_resampler_layers
-        num_latents=config.num_queries
+        depth = config.num_resampler_layers
+        num_latents = config.num_queries
         self.latents = nn.Parameter(torch.randn(num_latents, dim))
         self.layers = nn.ModuleList([])
         self.linear = nn.Linear(config.vision_hidden_size, config.hidden_size)
+        #print("config.hidden_size:",config.hidden_size)  #2560
+        #print("config.num_resampler_layers:",config.num_resampler_layers)  #3
+        #print("config.num_queries:",config.num_queries)  #512
+        #print("config.vision_hidden_size:",config.vision_hidden_size)  #1152
         for _ in range(depth):
             self.layers.append(
                 nn.ModuleList(
