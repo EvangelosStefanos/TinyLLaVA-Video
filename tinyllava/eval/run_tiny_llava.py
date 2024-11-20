@@ -9,7 +9,6 @@ from transformers import PreTrainedModel
 from pytorchvideo.data.encoded_video import EncodedVideo
 from torchvision.transforms import functional as F
 from torchvision.io import read_video
-import cv2
 
 from tinyllava.utils import *
 from tinyllava.data import *
@@ -41,7 +40,7 @@ def load_images(image_files):
         out.append(image)
     return out
 
-def save_frames(frames, save_dir="/data/vlm/zxj/demo"):
+def save_frames(frames, save_dir="/data/vlm/zxj/others/demo"):
     os.makedirs(save_dir, exist_ok=True)
     for i, frame in enumerate(frames):
         img = Image.fromarray((frame.cpu().numpy().transpose(1, 2, 0)).astype('uint8'))
@@ -67,7 +66,8 @@ def eval_model(args):
 
     text_processor = TextPreprocess(tokenizer, args.conv_mode)
     data_args = model.config
-    image_processor = ImagePreprocess(image_processor, data_args)
+    image_preprocess = ImagePreprocess(image_processor, data_args)
+    video_preprocess = VideoPreprocess(image_processor, data_args)
 
     model.cuda()
 
@@ -84,7 +84,7 @@ def eval_model(args):
     if args.image_file is not None:
         image_files = image_parser(args)
         images = load_images(image_files)[0]
-        images_tensor = image_processor(images)
+        images_tensor = image_preprocess(images)
         images_tensor = images_tensor.unsqueeze(0).half().cuda()
     
     if args.video_file is not None:
@@ -99,14 +99,28 @@ def eval_model(args):
         total_frames = video_data.shape[0]
         frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
         video_data = video_data[frame_indices]
+        #video_data = [None]*len(video_datas)
+        #for i in range(len(video_datas)):
+        #    video_data[i] = video_datas[len(video_datas)-1-i]
         save_frames(video_data)
 
         videos = []
         for video in video_data:
-            video = image_processor(video)
+            video = video_preprocess(video)
             videos.append(video)
         video_tensor = torch.stack(videos)
         video_tensor = video_tensor.unsqueeze(dim=0)
+        #print("video_tensor:",video_tensor.shape)
+
+        #ano_data = [None]*len(video_data)
+        #for i in range(len(video_data)):
+        #    ano_data[i] = video_data[len(video_data)-1-i]
+        #anos = []
+        #for video in ano_data:
+        #    video = video_preprocess(video)
+        #    anos.append(video)
+        #anos_tensor = torch.stack(anos)
+        #anos_tensor = anos_tensor.unsqueeze(dim=0)
 
     stop_str = text_processor.template.separator.apply()[1]
     keywords = [stop_str]

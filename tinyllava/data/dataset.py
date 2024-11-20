@@ -4,7 +4,6 @@ import json
 from typing import Dict,  Sequence, TYPE_CHECKING
 from PIL import Image, ImageFile
 import os
-import cv2
 from .text_preprocess import TextPreprocess
 from .image_preprocess import ImagePreprocess
 from .video_preprocess import VideoPreprocess
@@ -14,7 +13,7 @@ from ..utils.constants import *
 
 import transformers
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, ConcatDataset
 
 import numpy as np
 #import decord
@@ -47,7 +46,7 @@ class LazySupervisedDataset(Dataset):
     def lengths(self):
         length_list = []
         for sample in self.list_data_dict:
-            img_tokens = 128 if 'image' in sample else 0
+            img_tokens = 128 if 'image' in sample or 'video' in sample else 0
             length_list.append(sum(len(conv['value'].split()) for conv in sample['conversations']) + img_tokens)
         return length_list
 
@@ -56,7 +55,7 @@ class LazySupervisedDataset(Dataset):
         length_list = []
         for sample in self.list_data_dict:
             cur_len = sum(len(conv['value'].split()) for conv in sample['conversations'])
-            cur_len = cur_len if 'image' in sample else -cur_len
+            cur_len = cur_len if 'image' in sample or 'video' in sample else -cur_len
             length_list.append(cur_len)
         return length_list
 
@@ -71,7 +70,7 @@ class LazySupervisedDataset(Dataset):
             data_dict['image'] = image
         elif 'video' in sources:
             video_file = self.list_data_dict[i]['video']
-            video_folder = os.path.join(self.data_args.image_folder, video_file)
+            video_folder = os.path.join(self.data_args.video_folder, video_file)
 
             video = EncodedVideo.from_path(video_folder, decoder="decord", decode_audio=False)
             duration = video.duration
@@ -80,6 +79,7 @@ class LazySupervisedDataset(Dataset):
             except Exception as e:
                 print(f"Corrupted video found: {video_folder}, Error: {e}")
             video_data = video_data['video'].permute(1, 0, 2, 3)
+            #print("video.max:",video_data.max())
             
             #print("num_frames:",self.num_frames)
             total_frames = video_data.shape[0]
@@ -147,16 +147,64 @@ class DataCollatorForSupervisedDataset(object):
             video = [instance['video'] for instance in instances]
             if all(x is not None and x.shape == video[0].shape for x in video):
                 batch['video'] = torch.stack(video)
-                #print("batch['video']:",batch['video'].shape)
             else:
                 batch['video'] = video
+        """
+        video_id = []
+        images_list =[]
+        video_list = []
+        for idx, instance in enumerate(instances):
+            if 'image' in instance:
+                images_list.append(instance['image'])
+            elif 'video' in instance:
+                video_list.append(instance['video'])
+                video_id.append(idx)
+        
+        if len(images_list) > 0:
+            batch['images'] = torch.stack(images_list)
+        else:
+            batch['images'] = None
 
+        if len(video_list) > 0:
+            batch['video'] = torch.stack(video_list)
+            batch['video_id'] = video_id
+        else:
+            batch['video'] = None
+            batch['video_id'] = None
+        """
         return batch
 
 
 def make_supervised_data_module(tokenizer: transformers.PreTrainedTokenizer,
                                 data_args) -> Dict:
-    """Make dataset and collator for supervised fine-tuning."""
+    
+    """
+    image_dataset = None
+    if data_args.image_data_path is not None:
+        image_dataset = LazySupervisedDataset(tokenizer=tokenizer,
+                                              data_path=data_args.image_data_path,
+                                              data_args=data_args)
+    
+    video_dataset = None
+    if data_args.video_data_path is not None:
+        data_args.data_path = data_args.video_data_path
+        data_args.data_folder = data_args.video_folder
+        video_dataset = LazySupervisedDataset(tokenizer=tokenizer,
+                                              data_path=data_args.video_data_path,
+                                              data_args=data_args)
+        
+    if image_dataset is None and video_dataset is not None:
+        train_dataset = video_dataset
+    elif image_dataset is not None and video_dataset is None:
+        train_dataset = image_dataset
+    elif image_dataset is not None and video_dataset is not None:
+        train_dataset = ConcatDataset([image_dataset, video_dataset])
+
+    data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
+    return dict(train_dataset=train_dataset,
+                eval_dataset=None,
+                data_collator=data_collator)
+    """
     train_dataset = LazySupervisedDataset(tokenizer=tokenizer,
                                           data_path=data_args.data_path,
                                           data_args=data_args)

@@ -37,11 +37,14 @@ class ModelArguments:
 
 @dataclass
 class DataArguments:
-    data_path: str = field(default=None,
-                           metadata={"help": "Path to the training data."})
+    data_path: str = field(default=None, metadata={"help": "Path to the training data."})
+    data_folder: Optional[str] = field(default=None)
+    image_data_path: str = field(default=None, metadata={"help": "Path to the training data."})
+    image_folder: Optional[str] = field(default=None)
+    video_data_path: str = field(default=None, metadata={"help": "Path to the training data."})
+    video_folder: Optional[str] = field(default=None)
     lazy_preprocess: bool = False
     is_multimodal: bool = True
-    image_folder: Optional[str] = field(default=None)
     image_aspect_ratio: str = 'square'
     conv_version: str = 'pretrain'
     num_frames: int = 16

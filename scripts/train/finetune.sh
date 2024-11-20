@@ -1,28 +1,33 @@
 #!/bin/bash
-if [ $# -ne 10 ]; then
-    echo "Usage: $0 <DATA_PATH> <IMAGE_PATH> <LLM_VERSION> <VT_VERSION> <VT_VERSION2> <CN_VERSION> <CONV_VERSION> <VERSION> <TRAIN_RECIPE> <MODEL_MAX_LENGTH>"
+if [ $# -ne 12 ]; then
+    echo "Usage: $0 <DATA_PATH> <IMAGE_PATH> <VIDEO_DATA_PATH> <VIDEO_PATH> <LLM_VERSION> <VT_VERSION> <VT_VERSION2> <CN_VERSION> <CONV_VERSION> <VERSION> <TRAIN_RECIPE> <MODEL_MAX_LENGTH>"
     exit 1
 fi
 
 # Assign the arguments to variables
 DATA_PATH="$1"
 IMAGE_PATH="$2"
-LLM_VERSION="$3"
-VT_VERSION="$4"
-VT_VERSION2="$5"
-CN_VERSION="$6"
-CONV_VERSION="$7"
-VERSION="$8"
-TRAIN_RECIPE="$9"
-MODEL_MAX_LENGTH="${10}"
+VIDEO_DATA_PATH="$3"
+VIDEO_PATH="$4"
+LLM_VERSION="$5"
+VT_VERSION="$6"
+VT_VERSION2="$7"
+CN_VERSION="$8"
+CONV_VERSION="$9"
+VERSION="${10}"
+TRAIN_RECIPE="${11}"
+MODEL_MAX_LENGTH="${12}"
 
 VT_VARIANT="${VT_VERSION##*/}"
 LLM_VARIANT="${LLM_VERSION##*/}"
 
-deepspeed --include localhost:4,5,6,7 --master_port 29501 tinyllava/train/train.py \
-    --deepspeed ./scripts/zero3.json \
-    --data_path  $DATA_PATH \
-    --image_folder $IMAGE_PATH \
+#--image_data_path  $DATA_PATH \
+#--image_folder $IMAGE_PATH \
+
+deepspeed --include localhost:0,1,2,3 --master_port 29501 tinyllava/train/train.py \
+    --deepspeed ./scripts/zero2.json \
+    --video_data_path  $VIDEO_DATA_PATH \
+    --video_folder $VIDEO_PATH \
     --is_multimodal True \
     --conv_version $CONV_VERSION \
     --model_name_or_path $LLM_VERSION \
@@ -43,7 +48,7 @@ deepspeed --include localhost:4,5,6,7 --master_port 29501 tinyllava/train/train.
     --pretrained_model_path /data/vlm/zxj/result/llava_video_factory/tiny-llava-${LLM_VARIANT}-${VT_VARIANT}-${VERSION}-pretrain \
     --output_dir /data/vlm/zxj/result/llava_video_factory/tiny-llava-${LLM_VARIANT}-${VT_VARIANT}-${VERSION}-finetune \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 16 \
+    --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 4 \
     --gradient_accumulation_steps 4 \
     --evaluation_strategy "no" \
