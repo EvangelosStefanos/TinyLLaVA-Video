@@ -18,7 +18,7 @@ class PerceiverResampler(nn.Module):
         self.latents = nn.Parameter(torch.randn(num_latents, dim))
         self.layers = nn.ModuleList([])
         self.linear = nn.Linear(config.vision_hidden_size, config.hidden_size)
-        self.position_encoding = PositionalEncoding(dim, num_latents)
+        self.position_encoding = PositionalEncoding(dim)
 
         for _ in range(depth):
             self.layers.append(
@@ -30,16 +30,18 @@ class PerceiverResampler(nn.Module):
                 )
             )
 
-        self.norm = nn.LayerNorm(dim)
+        self.norm = nn.LayerNorm(dim, dtype=torch.float16)
 
     def forward(self, x):
         b, v = x.shape[:2]
         x = self.linear(x) #torch.Size([bs, 728*16, 2560])
+        
+        position_encoding = self.position_encoding(v).to(device='cuda', dtype=torch.float16)
+        x = x + position_encoding
 
         latents = repeat(self.latents, "n d -> b T n d", b=b, T=1) #torch.Size([bs, 1, 512, 2560])
-        position_encoding = self.position_encoding(x) 
-        #print("position_encoding:",position_encoding.shape) #torch.Size([1, 512, 2560])
-        latents = latents + position_encoding
+        #position_encoding = self.position_encoding(x).to(device='cuda', dtype=torch.float16)
+        #latents = latents + position_encoding
 
         x = x.unsqueeze(1)
         for attn, ff in self.layers:
@@ -62,35 +64,16 @@ def exists(val):
 
 """
 class PositionalEncoding(nn.Module):
-    def __init__(self, d_model, len=512):
-        super().__init__()
-        #self.dropout = nn.Dropout(p=0.1)
-        pe = torch.zeros(len, d_model)
-        position = torch.arange(0, len).unsqueeze(1).float()
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * -(math.log(10000.0) / d_model))
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-        pe = pe.unsqueeze(0)
-        self.register_buffer('pe', pe)
-
-    def forward(self, x):
-        seq_len = x.size(1)
-        return self.pe[:, :seq_len]
-        #x = x + self.pe[:, :x.size(1)]
-        #return self.dropout(x)
-"""
-
-class PositionalEncoding(nn.Module):
     def __init__(self, d_model, max_len=512):
         super().__init__()
 
-        pe = torch.zeros(max_len, d_model)
+        self.pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len).unsqueeze(1).float()
         div_term = torch.exp(torch.arange(0, d_model, 2).float() * -(math.log(10000.0) / d_model))
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-        pe = pe.unsqueeze(0)  # [1, max_len, d_model]
-        self.register_buffer('pe', pe)
+        self.pe[:, 0::2] = torch.sin(position * div_term)
+        self.pe[:, 1::2] = torch.cos(position * div_term)
+        self.pe = self.pe.unsqueeze(0)  # [1, max_len, d_model]
+        #self.register_buffer('pe', pe)
         self.pool = nn.AdaptiveAvgPool1d(max_len)
 
     def forward(self, x):
@@ -98,6 +81,24 @@ class PositionalEncoding(nn.Module):
         x = self.pool(x)  # [bs, d_model, max_len]
         x = x.permute(0, 2, 1)  # [bs, max_len, d_model]
         return self.pe[:, :x.size(1), :]
+"""
+
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model):
+        super().__init__()
+        self.d_model = d_model
+        #self.max_len = max_len
+
+    def forward(self, seq_len):
+        #assert seq_len <= self.max_len, "Sequence length exceeds max_len!"
+        pe = torch.zeros(seq_len, self.d_model, device='cuda', dtype=torch.float16)
+        position = torch.arange(0, seq_len, device='cuda').unsqueeze(1).float()
+        div_term = torch.exp(
+            torch.arange(0, self.d_model, 2, device='cuda').float() * -(math.log(10000.0) / self.d_model)
+        )
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        return pe.unsqueeze(0)  # [1, seq_len, d_model]
 
 
 def FeedForward(dim, mult=4):

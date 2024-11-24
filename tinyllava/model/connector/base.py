@@ -21,12 +21,9 @@ class Connector(nn.Module):
 
         for p in self._connector.parameters():
             p.requires_grad = False
-   
 
-    
-    
     def forward(self, x):
         return self._connector(x)
         
 
-  
+

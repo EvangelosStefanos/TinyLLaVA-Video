@@ -94,7 +94,6 @@ def eval_model(args):
         duration = video.duration
         video_data = video.get_clip(start_sec=0.0, end_sec=duration)
         video_data = video_data['video'].permute(1, 0, 2, 3) #torch.Size([l, 3, W, H])
-        #print("video.max:",video_data.max())
 
         total_frames = video_data.shape[0]
         frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
@@ -131,6 +130,7 @@ def eval_model(args):
             input_ids,
             images=images_tensor,
             video=video_tensor,
+            #ano=anos_tensor,
             do_sample=True if args.temperature > 0 else False,
             temperature=args.temperature,
             top_p=args.top_p,

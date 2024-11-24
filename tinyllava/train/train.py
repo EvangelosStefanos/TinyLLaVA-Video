@@ -91,8 +91,8 @@ def train():
         data_arguments.data_folder = data_arguments.image_folder
         image_data_module = make_supervised_data_module(tokenizer=tokenizer,
                                                         data_args=data_arguments)
-        if training_arguments.pretrained_model_path is None:
-            training_arguments.per_device_train_batch_size = training_arguments.per_device_train_batch_size * 2
+        #if training_arguments.pretrained_model_path is None:
+        #    training_arguments.per_device_train_batch_size = training_arguments.per_device_train_batch_size * 2
         trainer = LLaVATrainer(model=model, #does not require model.to(device), huggingface/deepspeed does it for you?
                                tokenizer=tokenizer,
                                args=training_arguments,
@@ -105,8 +105,8 @@ def train():
         data_arguments.data_folder = data_arguments.video_folder
         video_data_module = make_supervised_data_module(tokenizer=tokenizer,
                                                         data_args=data_arguments)
-        if data_arguments.image_data_path is not None:
-            training_arguments.per_device_train_batch_size = training_arguments.per_device_train_batch_size / 2
+        #if data_arguments.image_data_path is not None:
+        #    training_arguments.per_device_train_batch_size = int(training_arguments.per_device_train_batch_size / 2)
         trainer = LLaVATrainer(model=model, #does not require model.to(device), huggingface/deepspeed does it for you?
                                tokenizer=tokenizer,
                                args=training_arguments,

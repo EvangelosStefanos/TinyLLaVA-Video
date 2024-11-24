@@ -13,8 +13,11 @@ class VideoPreprocess:
         self.image_processor = image_processor
     
     def __call__(self, image):
-        if image.max() > 1:
+        if isinstance(image, Image.Image):
             image = self.image_processor(image, return_tensors='pt')['pixel_values'][0]
         else:
-            image = self.image_processor(image, return_tensors='pt', do_rescale=False)['pixel_values'][0]
+            if image.max() > 1:
+                image = self.image_processor(image, return_tensors='pt')['pixel_values'][0]
+            else:
+                image = self.image_processor(image, return_tensors='pt', do_rescale=False)['pixel_values'][0]
         return image

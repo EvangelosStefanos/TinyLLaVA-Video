@@ -79,9 +79,7 @@ class LazySupervisedDataset(Dataset):
             except Exception as e:
                 print(f"Corrupted video found: {video_folder}, Error: {e}")
             video_data = video_data['video'].permute(1, 0, 2, 3)
-            #print("video.max:",video_data.max())
-            
-            #print("num_frames:",self.num_frames)
+
             total_frames = video_data.shape[0]
             frame_indices = np.linspace(0, total_frames - 1, self.num_frames, dtype=int)
             video_data = video_data[frame_indices] #torch.Size([8, 3, W, H])
@@ -92,7 +90,6 @@ class LazySupervisedDataset(Dataset):
                 videos.append(video)
             videos = torch.stack(videos)
 
-            #print("video after preprocess:",videos.shape)
             data_dict['video'] = videos
         elif self.data_args.is_multimodal:
             # image does not exist in the data, but the model is multimodal
@@ -149,6 +146,7 @@ class DataCollatorForSupervisedDataset(object):
                 batch['video'] = torch.stack(video)
             else:
                 batch['video'] = video
+        
         """
         video_id = []
         images_list =[]
