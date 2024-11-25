@@ -10,6 +10,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class VideoPreprocess:
     def __init__(self, image_processor, data_args={}):
+        #self.image_aspect_ratio = getattr(data_args, 'image_aspect_ratio', None)
+        #self.image_grid_pinpoints = getattr(data_args, 'image_grid_pinpoints', None)
         self.image_processor = image_processor
     
     def __call__(self, image):

@@ -16,7 +16,7 @@ class ModelArguments:
     vision_tower: Optional[str] = field(default='')
     vision_tower2: Optional[str] = field(default='')
     connector_type: str = field(default='linear')
-    connector_video_type: str = field(default='resampler')
+    connector_video_type: str = field(default='resamplerwithpe')
     
     mm_vision_select_layer: Optional[int] = field(default=-1)  # default to the last layer
     mm_patch_merge_type: Optional[str] = field(default='flat')

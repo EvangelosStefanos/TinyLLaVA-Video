@@ -1,6 +1,6 @@
 #!/bin/bash
-if [ $# -ne 12 ]; then
-    echo "Usage: $0 <DATA_PATH> <IMAGE_PATH> <VIDEO_DATA_PATH> <VIDEO_PATH> <LLM_VERSION> <VT_VERSION> <VT_VERSION2> <CN_VERSION> <CONV_VERSION> <VERSION> <TRAIN_RECIPE> <MODEL_MAX_LENGTH>"
+if [ $# -ne 13 ]; then
+    echo "Usage: $0 <DATA_PATH> <IMAGE_PATH> <VIDEO_DATA_PATH> <VIDEO_PATH> <LLM_VERSION> <VT_VERSION> <VT_VERSION2> <CN_VERSION> <CONV_VERSION> <VERSION> <TRAIN_RECIPE> <MODEL_MAX_LENGTH> <NUM_FRAME>"
     exit 1
 fi
 
@@ -17,6 +17,7 @@ CONV_VERSION="$9"
 VERSION="${10}"
 TRAIN_RECIPE="${11}"
 MODEL_MAX_LENGTH="${12}"
+NUM_FRAME="${13}"
 
 VT_VARIANT="${VT_VERSION##*/}"
 LLM_VARIANT="${LLM_VERSION##*/}"
@@ -34,7 +35,8 @@ deepspeed --include localhost:0,1,2,3 --master_port 29501 tinyllava/train/train.
     --vision_tower $VT_VERSION \
     --vision_tower2 "$VT_VERSION2" \
     --connector_type $CN_VERSION \
-    --connector_video_type resampler \
+    --connector_video_type resamplerwithpe \
+    --num_frames $NUM_FRAME \
     --mm_vision_select_layer -2 \
     --image_aspect_ratio square \
     --attn_implementation flash_attention_2 \

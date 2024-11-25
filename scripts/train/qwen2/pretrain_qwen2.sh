@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ $# -ne 11 ]; then
-    echo "Usage: $0 <DATA_PATH> <IMAGE_PATH> <VIDEO_DATA_PATH> <VIDEO_PATH> <LLM_VERSION> <VT_VERSION> <VT_VERSION2> <CN_VERSION> <VERSION> <TRAIN_RECIPE> <MODEL_MAX_LENGTH>"
+if [ $# -ne 12 ]; then
+    echo "Usage: $0 <DATA_PATH> <IMAGE_PATH> <VIDEO_DATA_PATH> <VIDEO_PATH> <LLM_VERSION> <VT_VERSION> <VT_VERSION2> <CN_VERSION> <VERSION> <TRAIN_RECIPE> <MODEL_MAX_LENGTH> <NUM_FRAME>"
     exit 1
 fi
 
@@ -17,6 +17,7 @@ CN_VERSION="$8"
 VERSION="$9"
 TRAIN_RECIPE="${10}"
 MODEL_MAX_LENGTH="${11}"
+NUM_FRAME="${12}"
 
 VT_VARIANT="${VT_VERSION##*/}"
 LLM_VARIANT="${LLM_VERSION##*/}"
@@ -34,7 +35,8 @@ deepspeed --include localhost:0,1,2,3 --master_port 29501 tinyllava/train/train.
     --vision_tower $VT_VERSION \
     --vision_tower2 "$VT_VERSION2" \
     --connector_type $CN_VERSION \
-    --connector_video_type resampler \
+    --connector_video_type resamplerwithpe \
+    --num_frames $NUM_FRAME \
     --mm_vision_select_layer -2 \
     --image_aspect_ratio square \
     --attn_implementation flash_attention_2 \
@@ -46,14 +48,14 @@ deepspeed --include localhost:0,1,2,3 --master_port 29501 tinyllava/train/train.
     --tune_type_connector full \
     --output_dir /data/vlm/zxj/result/llava_video_factory/tiny-llava-${LLM_VARIANT}-${VT_VARIANT}-${VERSION}-pretrain \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 4 \
+    --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 4 \
     --gradient_accumulation_steps 2 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 24000 \
     --save_total_limit 1 \
-    --learning_rate 1e-4 \
+    --learning_rate 1e-3 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \

@@ -97,12 +97,8 @@ def check_ans(pred, gt):
     gt = gt.strip()
     
     pred_list = pred.lower().split(' ')
-    #print("pred_list:",pred_list)
     pred_option, pred_content = pred_list[0], ' '.join(pred_list[1:])
-    gt = gt.lower() #.split(' ')
-    #gt_option, gt_content = gt_list[0], ' '.join(gt_list[1:])
-    #if gt_content[-1] == '.':
-    #    gt_content = gt_content[:-1]
+    gt = gt.lower() 
     
     if gt in pred_option.replace('.', ''):
         flag = True
