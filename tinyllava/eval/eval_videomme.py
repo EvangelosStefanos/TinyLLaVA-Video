@@ -15,7 +15,7 @@ from tinyllava.model import *
 
 from PIL import Image
 import math
-import cv2  # 用于处理视频帧
+import av
 
 
 def split_list(lst, n):
@@ -98,7 +98,7 @@ def check_ans(pred, gt):
     
     pred_list = pred.lower().split(' ')
     pred_option, pred_content = pred_list[0], ' '.join(pred_list[1:])
-    gt = gt.lower() 
+    gt = gt.lower() #.split(' ')
     
     if gt in pred_option.replace('.', ''):
         flag = True
@@ -106,6 +106,19 @@ def check_ans(pred, gt):
         flag = True
         
     return flag
+
+def get_video_frames(video_path, num_frames=16):
+    container = av.open(video_path)
+    total_frames = container.streams.video[0].frames
+    frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
+    frames = []
+    for i, frame in enumerate(container.decode(video=0)):
+        if i in frame_indices:
+            img = frame.to_image()
+            frames.append(img)
+        if len(frames) >= num_frames:
+            break
+    return frames
 
 def eval_model(args):
     # Model
@@ -117,20 +130,15 @@ def eval_model(args):
     data_args = model.config
     video_processor = VideoPreprocess(image_processor, data_args)
 
-    # Load .parquet file
     questions_df = pd.read_parquet(os.path.expanduser(args.question_file))
+    questions_df = questions_df[questions_df["duration"] == args.duration]
     questions = questions_df.to_dict(orient="records")
     questions = get_chunk(questions, args.num_chunks, args.chunk_idx)
 
-    answers_file = os.path.expanduser(args.answers_file)
-    os.makedirs(os.path.dirname(answers_file), exist_ok=True)
-    ans_file = open(answers_file, "w")
     model.to(device="cuda")
 
-    # Initialize counters
-    total = {"short": 0, "medium": 0, "long": 0, "all": 0}
-    correct = {"short": 0, "medium": 0, "long": 0, "all": 0}
-
+    total = 0
+    correct = 0
     for i, line in enumerate(tqdm(questions)):
         idx = line["videoID"]
         question = line["question"]
@@ -140,34 +148,35 @@ def eval_model(args):
         options_text = "\n".join(options)
         video_path = os.path.join(args.image_folder, f"{line['videoID']}.mp4")
 
-        # Process video frames (assuming video exists)
-        if os.path.exists(video_path):
-            num_frame = 16
-            video = EncodedVideo.from_path(video_path, decoder="decord", decode_audio=False)
-            duration = video.duration
-            try:
-                video_data = video.get_clip(start_sec=0.0, end_sec=duration)
-            except Exception as e:
-                print(f"Corrupted video found: {video_path}, Error: {e}")
-                continue
-            video_data = video_data['video'].permute(1, 0, 2, 3)  # torch.Size([l, 3, W, H])
+        """
+        num_frame = 16
+        video = EncodedVideo.from_path(video_path, decoder="decord", decode_audio=False)
+        duration = video.duration
+        try:
+            video_data = video.get_clip(start_sec=0.0, end_sec=duration)
+        except Exception as e:
+            print(f"Corrupted video found: {video_path}, Error: {e}")
+        video_data = video_data['video'].permute(1, 0, 2, 3) #torch.Size([l, 3, W, H])
 
-            total_frames = video_data.shape[0]
-            frame_indices = np.linspace(0, total_frames - 1, num_frame, dtype=int)
-            video_data = video_data[frame_indices]
+        total_frames = video_data.shape[0]
+        frame_indices = np.linspace(0, total_frames - 1, num_frame, dtype=int)
+        video_data = video_data[frame_indices]
+            
+        videos = []
+        for video in video_data:
+            video = video_processor(video)
+            videos.append(video)
+        video_tensor = torch.stack(videos)
+        video_tensor = video_tensor.unsqueeze(dim=0)
+        """
+        
+        frames = get_video_frames(video_path)
+        video_tensor = torch.stack([video_processor(frame) for frame in frames])
+        video_tensor = video_tensor.unsqueeze(dim=0)
 
-            videos = []
-            for video in video_data:
-                video = video_processor(video)
-                videos.append(video)
-            video_tensor = torch.stack(videos)
-            video_tensor = video_tensor.unsqueeze(dim=0)
+        question = "<image>" + "\n" + question + "\n" + options_text
+        question = question + "\n" + "Answer with the option's letter from the given choices directly."
 
-            question = "<image>" + "\n" + question + "\n" + options_text
-            question = question + "\n" + "Answer with the option's letter from the given choices directly."
-        else:
-            print(f"Video not found: {video_path}")
-            continue
 
         msg = Message()
         msg.add_message(question)
@@ -189,24 +198,13 @@ def eval_model(args):
             )
             outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0]
             print("outputs:",outputs)
-
+            
         if check_ans(pred=outputs, gt=answer):
-            correct[line["duration"]] += 1
-            correct["all"] += 1
-            print("correct:",line["duration"])
-
-        total[line["duration"]] += 1
-        total["all"] += 1
-        
-        co_du = correct[line["duration"]] / total[line["duration"]] * 100
-        co_all = correct["all"] / total["all"] * 100
-        print(f"duration Acc: {co_du :.2f}%")
-        print(f"Total Acc: {co_all :.2f}%")
-
-    # Calculate accuracy for each category
-    for category in ["short", "medium", "long", "all"]:
-        accuracy = (correct[category] / total[category]) * 100 if total[category] > 0 else 0
-        print(f"{category.capitalize()} Accuracy: {accuracy:.2f}%")
+            correct += 1
+            print("correct!")
+        total += 1
+        print(f"{args.duration} Acc: {correct / total * 100 :.2f}%")
+    print(f"{args.duration} num: {total}")
         
 
 if __name__ == "__main__":
@@ -216,6 +214,7 @@ if __name__ == "__main__":
     parser.add_argument("--question-file", type=str, default="tables/question.parquet")
     parser.add_argument("--answers-file", type=str, default="answer.jsonl")
     parser.add_argument("--conv-mode", type=str, default="llama")
+    parser.add_argument("--duration", type=str, default="short")
     parser.add_argument("--num-chunks", type=int, default=1)
     parser.add_argument("--chunk-idx", type=int, default=0)
     parser.add_argument("--temperature", type=float, default=0.2)

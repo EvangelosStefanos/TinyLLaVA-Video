@@ -12,8 +12,7 @@ from tinyllava.utils import *
 from tinyllava.data import *
 from tinyllava.model import *
 
-def extract_question_and_following(example):
-    inputs = example['inputs']
+def extract_question_and_following(inputs):
     question_found = False
     result = []
     
@@ -71,20 +70,38 @@ def eval_model(args):
     correct_val = 0
     all_val = 0
     for example in tqdm(val_dataset):
-        question = extract_question_and_following(example)
-        images = [item for item in example['inputs'] if isinstance(item, Image.Image)]
+        question = extract_question_and_following(example['inputs'])
+        images_group = []
+        sub = ""
+        for item in example['inputs']:
+            if isinstance(item, Image.Image):  # 图像处理
+                img = item.convert("RGB")
+                img = video_processor(img)
+                images_group.append(img)
+                sub = sub + "[image]"
+            elif isinstance(item, str) and not item.startswith("Question:"):  # 字幕处理
+                sub = sub + item
+            else:
+                break
+        torch_imgs = torch.stack(images_group)
+        video_tensor = torch_imgs.unsqueeze(0)
+        sub = "subtitles:" + sub
+        #print("sub:",sub)
+        
+        #images = [item for item in example['inputs'] if isinstance(item, Image.Image)]
+        
         correct_answer = example['correct_choice']
         print("correct_answer:", correct_answer)
         
-        question = "<image>" + "\n" + question
-        print("question:",question)
+        question = sub + "\n" + "question: <image>" + "\n" + question
+        #print("question:",question)
         msg = Message()
         msg.add_message(question)
         result = text_processor(msg.messages, mode='eval')
         input_ids = result['input_ids']
         input_ids = input_ids.unsqueeze(0).cuda()
         
-        video_tensor = read_frame(images, video_processor)
+        #video_tensor = read_frame(images, video_processor)
         
         with torch.inference_mode():
             output_ids = model.generate(
@@ -110,7 +127,7 @@ def eval_model(args):
     print("start to test!")
     results = {}
     for example in tqdm(test_dataset):
-        question = extract_question_and_following(example)
+        question = extract_question_and_following(example['inputs'])
         video_id = example['id']
         images = [item for item in example['inputs'] if isinstance(item, Image.Image)]
         

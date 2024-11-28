@@ -62,35 +62,12 @@ class ResamplerConnectorWithPE(Connector):
 def exists(val):
     return val is not None
 
-"""
-class PositionalEncoding(nn.Module):
-    def __init__(self, d_model, max_len=512):
-        super().__init__()
-
-        self.pe = torch.zeros(max_len, d_model)
-        position = torch.arange(0, max_len).unsqueeze(1).float()
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * -(math.log(10000.0) / d_model))
-        self.pe[:, 0::2] = torch.sin(position * div_term)
-        self.pe[:, 1::2] = torch.cos(position * div_term)
-        self.pe = self.pe.unsqueeze(0)  # [1, max_len, d_model]
-        #self.register_buffer('pe', pe)
-        self.pool = nn.AdaptiveAvgPool1d(max_len)
-
-    def forward(self, x):
-        x = x.permute(0, 2, 1)  # [bs, d_model, seq_len]
-        x = self.pool(x)  # [bs, d_model, max_len]
-        x = x.permute(0, 2, 1)  # [bs, max_len, d_model]
-        return self.pe[:, :x.size(1), :]
-"""
-
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model):
         super().__init__()
         self.d_model = d_model
-        #self.max_len = max_len
 
     def forward(self, seq_len):
-        #assert seq_len <= self.max_len, "Sequence length exceeds max_len!"
         pe = torch.zeros(seq_len, self.d_model, device='cuda', dtype=torch.float16)
         position = torch.arange(0, seq_len, device='cuda').unsqueeze(1).float()
         div_term = torch.exp(

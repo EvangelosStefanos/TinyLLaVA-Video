@@ -13,11 +13,10 @@ from ..utils.constants import *
 
 import transformers
 import torch
-from torch.utils.data import Dataset, ConcatDataset
+from torch.utils.data import Dataset
 
 import numpy as np
-#import decord
-#from decord import VideoReader, cpu
+import av
 from pytorchvideo.data.encoded_video import EncodedVideo
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -89,7 +88,7 @@ class LazySupervisedDataset(Dataset):
                 video = self.video_preprocess(video)
                 videos.append(video)
             videos = torch.stack(videos)
-
+            
             data_dict['video'] = videos
         elif self.data_args.is_multimodal:
             # image does not exist in the data, but the model is multimodal
@@ -146,63 +145,13 @@ class DataCollatorForSupervisedDataset(object):
                 batch['video'] = torch.stack(video)
             else:
                 batch['video'] = video
-        
-        """
-        video_id = []
-        images_list =[]
-        video_list = []
-        for idx, instance in enumerate(instances):
-            if 'image' in instance:
-                images_list.append(instance['image'])
-            elif 'video' in instance:
-                video_list.append(instance['video'])
-                video_id.append(idx)
-        
-        if len(images_list) > 0:
-            batch['images'] = torch.stack(images_list)
-        else:
-            batch['images'] = None
 
-        if len(video_list) > 0:
-            batch['video'] = torch.stack(video_list)
-            batch['video_id'] = video_id
-        else:
-            batch['video'] = None
-            batch['video_id'] = None
-        """
         return batch
 
 
 def make_supervised_data_module(tokenizer: transformers.PreTrainedTokenizer,
                                 data_args) -> Dict:
     
-    """
-    image_dataset = None
-    if data_args.image_data_path is not None:
-        image_dataset = LazySupervisedDataset(tokenizer=tokenizer,
-                                              data_path=data_args.image_data_path,
-                                              data_args=data_args)
-    
-    video_dataset = None
-    if data_args.video_data_path is not None:
-        data_args.data_path = data_args.video_data_path
-        data_args.data_folder = data_args.video_folder
-        video_dataset = LazySupervisedDataset(tokenizer=tokenizer,
-                                              data_path=data_args.video_data_path,
-                                              data_args=data_args)
-        
-    if image_dataset is None and video_dataset is not None:
-        train_dataset = video_dataset
-    elif image_dataset is not None and video_dataset is None:
-        train_dataset = image_dataset
-    elif image_dataset is not None and video_dataset is not None:
-        train_dataset = ConcatDataset([image_dataset, video_dataset])
-
-    data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
-    return dict(train_dataset=train_dataset,
-                eval_dataset=None,
-                data_collator=data_collator)
-    """
     train_dataset = LazySupervisedDataset(tokenizer=tokenizer,
                                           data_path=data_args.data_path,
                                           data_args=data_args)

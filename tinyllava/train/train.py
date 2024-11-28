@@ -100,6 +100,8 @@ def train():
         trainer.train()
         
     if data_arguments.video_data_path is not None:
+        if data_arguments.image_data_path is not None:
+            del image_data_module
         print("Start to train video!")
         data_arguments.data_path = data_arguments.video_data_path
         data_arguments.data_folder = data_arguments.video_folder

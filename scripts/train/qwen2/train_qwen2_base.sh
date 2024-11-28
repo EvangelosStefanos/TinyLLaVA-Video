@@ -8,7 +8,7 @@ FINETUNE_VIDEO_DATA_PATH=/data/vlm/zxj/data/merge_data/llava_openqa.json #finetu
 VIDEO_PATH=/data/vlm/zxj/data/merge_data #pretrain image dir
 FINETUNE_VIDEO_PATH=/data/vlm/zxj/data/merge_data #finetune image dir
 
-LLM_VERSION=/data/vlm/zxj/checkpoints/Qwen2.5-0.5B # llm path in huggingface
+LLM_VERSION=/data/vlm/zxj/checkpoints/Qwen2.5-3B # llm path in huggingface
 VT_VERSION=/data/vlm/zxj/checkpoints/siglip-so400m-patch14-384 #vision tower path in huggingface
 VT_VERSION2="" #if you are not using mof vision tower, keep it empty
 CN_VERSION=mlp2x_gelu #connector type, other options are: qformer, resampler, etc

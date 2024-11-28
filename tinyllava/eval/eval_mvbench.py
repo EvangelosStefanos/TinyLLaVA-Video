@@ -157,19 +157,17 @@ class MVBench_dataset(Dataset):
     def read_frame(self, video_path, bound=None, fps=3):
         max_frame = len(os.listdir(video_path))
         images_group = list()
-        frame_indices = self.get_index(bound, fps, max_frame, first_idx=1) # frame_idx starts from 1
+        frame_indices = self.get_index(bound, fps, max_frame, first_idx=1)
         for frame_index in frame_indices:
             img = Image.open(os.path.join(video_path, f"{frame_index:05d}.jpg")).convert("RGB")
             img = self.video_processor(img)
             images_group.append(img)
-        #torch_imgs = self.transform(images_group)
         torch_imgs = torch.stack(images_group)
         torch_imgs = torch_imgs.unsqueeze(0)
         return torch_imgs
 
     def qa_template(self, data):
         question = f"{data['question']}\n"
-        #question += "Options:\n"
         answer = data['answer']
         answer_idx = -1
         for idx, c in enumerate(data['candidates']):
@@ -195,7 +193,7 @@ class MVBench_dataset(Dataset):
         return {
             'video': torch_imgs, 
             'question': question, 
-            'answer': answer,
+            'answer': answer, 
             'task_type': self.data_list[idx]['task_type']
         }
 
@@ -214,12 +212,8 @@ def check_ans(pred, gt):
         gt_content = gt_content[:-1]
     
     if pred_option.replace('.', '') in gt_option:
-        #print("pred_option:",pred_option.replace('.', ''))
-        #print("gt_option:",gt_option)
         flag = True
     elif gt_option in pred_option:
-        #print("gt_option:",gt_option)
-        #print("pred_option:",pred_option)
         flag = True
         
     return flag
@@ -256,6 +250,7 @@ def eval_model(args):
         
         question = example["question"]
         question = "<image>" + "\n" + question + "\n" + "Answer with the option's letter from the given choices directly."
+        #print("question:",question)
         msg = Message()
         msg.add_message(question)
         result = text_processor(msg.messages, mode='eval')
@@ -292,21 +287,21 @@ def eval_model(args):
         print(f"Total Acc: {correct / total * 100 :.2f}%")
         print('-' * 30, task_type, '-' * 30)
 
-        final_res = dict()
-        correct = 0
-        total = 0
-        for k, v in acc_dict.items():
-            final_res[k] = v[0] / v[1] * 100
-            correct += v[0]
-            total += v[1]    
-        final_res['Avg'] = correct / total * 100
+    final_res = dict()
+    correct = 0
+    total = 0
+    for k, v in acc_dict.items():
+        final_res[k] = v[0] / v[1] * 100
+        correct += v[0]
+        total += v[1]    
+    final_res['Avg'] = correct / total * 100
 
-        print(final_res)
+    print(final_res)
 
-        answers_file = os.path.expanduser(args.answers_file)
-        os.makedirs(os.path.dirname(answers_file), exist_ok=True)
-        with open(answers_file, "w") as f:
-            json.dump(final_res, f)
+    answers_file = os.path.expanduser(args.answers_file)
+    os.makedirs(os.path.dirname(answers_file), exist_ok=True)
+    with open(answers_file, "w") as f:
+        json.dump(final_res, f)
         
 
 
