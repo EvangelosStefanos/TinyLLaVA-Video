@@ -28,58 +28,6 @@ def get_chunk(lst, n, k):
     chunks = split_list(lst, n)
     return chunks[k]
 
-
-def parse_multi_choice_response(response, all_choices, index2ans):
-    """
-    Parse the prediction from the generated response.
-    Return the predicted index e.g., A, B, C, D.
-    """
-    for char in [",", ".", "!", "?", ";", ":", "'"]:
-        response = response.strip(char)
-    response = " " + response + " "  # add space to avoid partial match
-
-    index_ans = True
-    ans_with_brack = False
-    candidates = []
-    for choice in all_choices:  # e.g., (A) (B) (C) (D)
-        if f"({choice})" in response:
-            candidates.append(choice)
-            ans_with_brack = True
-
-    if len(candidates) == 0:
-        for choice in all_choices:  # e.g., A B C D
-            if f" {choice} " in response:
-                candidates.append(choice)
-
-    if len(candidates) == 0 and len(response.split()) > 5:
-        for index, ans in index2ans.items():
-            if ans.lower() in response.lower():
-                candidates.append(index)
-                index_ans = False  # it's content ans.
-
-    if len(candidates) == 0:  # still not get answer, randomly choose one.
-        pred_index = random.choice(all_choices)
-    elif len(candidates) > 1:
-        start_indexes = []
-        if index_ans:
-            if ans_with_brack:
-                for can in candidates:
-                    index = response.rfind(f"({can})")
-                    start_indexes.append(index)  # -1 will be ignored anyway
-            else:
-                for can in candidates:
-                    index = response.rfind(f" {can} ")
-                    start_indexes.append(index)
-        else:
-            for can in candidates:
-                index = response.lower().rfind(index2ans[can].lower())
-                start_indexes.append(index)
-        pred_index = candidates[np.argmax(start_indexes)]
-    else:  # if only one candidate, use it.
-        pred_index = candidates[0]
-
-    return pred_index
-
 def trans_ans(original_options):
     result = {}
     all_choices = []
@@ -107,6 +55,63 @@ def check_ans(pred, gt):
         
     return flag
 
+def parse_multi_choice_response(response, all_choices, index2ans):
+    """
+    Parse the prediction from the generated response.
+    Return the predicted index e.g., A, B, C, D.
+    """
+    response = response.strip()
+    for char in [",", ".", "!", "?", ";", ":", "'"]:
+        response = response.strip(char)
+    if response[0] in all_choices:
+        return response[0]
+    response = " " + response + " "  # add space to avoid partial match
+
+    index_ans = True
+    ans_with_brack = False
+    candidates = []
+    for choice in all_choices:  # e.g., (A) (B) (C) (D)
+        if f"({choice})" in response:
+            candidates.append(choice)
+            ans_with_brack = True
+
+    if len(candidates) == 0:
+        for choice in all_choices:  # e.g., A B C D
+            if f" {choice} " in response:
+                candidates.append(choice)
+
+    # if all above doesn't get candidates, check if the content is larger than 5 tokens and try to parse the example
+    if len(candidates) == 0 and len(response.split()) > 5:
+        for index, ans in index2ans.items():
+            if ans.lower() in response.lower():
+                candidates.append(index)
+                index_ans = False  # it's content ans.
+
+    if len(candidates) == 0:  # still not get answer, randomly choose one.
+        pred_index = random.choice(all_choices)
+    elif len(candidates) > 1:
+        start_indexes = []
+        if index_ans:
+            if ans_with_brack:
+                for can in candidates:
+                    index = response.rfind(f"({can})")
+                    start_indexes.append(index)  # -1 will be ignored anyway
+                # start_indexes = [generated_response.index(f'({can})') for can in candidates]
+            else:
+                for can in candidates:
+                    index = response.rfind(f" {can} ")
+                    start_indexes.append(index)
+        else:
+            for can in candidates:
+                index = response.lower().rfind(index2ans[can].lower())
+                start_indexes.append(index)
+        # get the last one
+        pred_index = candidates[np.argmax(start_indexes)]
+    else:  # if only one candidate, use it.
+        pred_index = candidates[0]
+
+    return pred_index
+
 def get_video_frames(video_path, num_frames=16):
     container = av.open(video_path)
     total_frames = container.streams.video[0].frames
@@ -119,6 +124,11 @@ def get_video_frames(video_path, num_frames=16):
         if len(frames) >= num_frames:
             break
     return frames
+
+def select_from_options(options):
+    all_choices = [option.split('.')[0] for option in options]
+    index2ans = {option.split('.')[0]: option.split('. ')[1][:-1] for option in options}
+    return all_choices, index2ans
 
 def eval_model(args):
     # Model
@@ -147,28 +157,6 @@ def eval_model(args):
         options = line["options"]
         options_text = "\n".join(options)
         video_path = os.path.join(args.image_folder, f"{line['videoID']}.mp4")
-
-        """
-        num_frame = 16
-        video = EncodedVideo.from_path(video_path, decoder="decord", decode_audio=False)
-        duration = video.duration
-        try:
-            video_data = video.get_clip(start_sec=0.0, end_sec=duration)
-        except Exception as e:
-            print(f"Corrupted video found: {video_path}, Error: {e}")
-        video_data = video_data['video'].permute(1, 0, 2, 3) #torch.Size([l, 3, W, H])
-
-        total_frames = video_data.shape[0]
-        frame_indices = np.linspace(0, total_frames - 1, num_frame, dtype=int)
-        video_data = video_data[frame_indices]
-            
-        videos = []
-        for video in video_data:
-            video = video_processor(video)
-            videos.append(video)
-        video_tensor = torch.stack(videos)
-        video_tensor = video_tensor.unsqueeze(dim=0)
-        """
         
         frames = get_video_frames(video_path)
         video_tensor = torch.stack([video_processor(frame) for frame in frames])
@@ -176,7 +164,6 @@ def eval_model(args):
 
         question = "<image>" + "\n" + question + "\n" + options_text
         question = question + "\n" + "Answer with the option's letter from the given choices directly."
-
 
         msg = Message()
         msg.add_message(question)
@@ -198,8 +185,11 @@ def eval_model(args):
             )
             outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0]
             print("outputs:",outputs)
+        all_choices, index2ans = select_from_options(options)
+        pred_ans = parse_multi_choice_response(outputs, all_choices, index2ans)
+        print("pred_ans:",pred_ans)
             
-        if check_ans(pred=outputs, gt=answer):
+        if pred_ans==answer:
             correct += 1
             print("correct!")
         total += 1
