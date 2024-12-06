@@ -3,6 +3,7 @@ import os
 import argparse
 import torch
 from tqdm import tqdm
+import random
 from decord import VideoReader, cpu
 from torch.utils.data import Dataset
 
@@ -12,9 +13,11 @@ from tinyllava.utils import *
 from tinyllava.data import *
 from tinyllava.model import *
 
-def extract_question_and_following(inputs):
+def extract_question_and_following(example):
+    inputs = example['inputs']
     question_found = False
     result = []
+    options = []
     
     for item in inputs:
         if isinstance(item, str) and item.startswith("Question:"):
@@ -22,8 +25,12 @@ def extract_question_and_following(inputs):
             question_found = True
         elif question_found and isinstance(item, str):
             result.append(item)
+            if item.startswith("Answer"):
+                continue
+            else:
+                options.append(item)
     
-    return '\n'.join(result)
+    return '\n'.join(result), options
 
 def read_frame(images, video_processor):
     images_group = []
@@ -52,6 +59,68 @@ def check_ans(pred, gt):
         
     return flag
 
+def parse_multi_choice_response(response, all_choices, index2ans):
+    """
+    Parse the prediction from the generated response.
+    Return the predicted index e.g., A, B, C, D.
+    """
+    response = response.strip()
+    for char in [",", ".", "!", "?", ";", ":", "'"]:
+        response = response.strip(char)
+    if response[0] in all_choices:
+        return response[0]
+    response = " " + response + " "  # add space to avoid partial match
+
+    index_ans = True
+    ans_with_brack = False
+    candidates = []
+    for choice in all_choices:  # e.g., (A) (B) (C) (D)
+        if f"({choice})" in response:
+            candidates.append(choice)
+            ans_with_brack = True
+
+    if len(candidates) == 0:
+        for choice in all_choices:  # e.g., A B C D
+            if f" {choice} " in response:
+                candidates.append(choice)
+
+    # if all above doesn't get candidates, check if the content is larger than 5 tokens and try to parse the example
+    if len(candidates) == 0 and len(response.split()) > 5:
+        for index, ans in index2ans.items():
+            if ans.lower() in response.lower():
+                candidates.append(index)
+                index_ans = False  # it's content ans.
+
+    if len(candidates) == 0:  # still not get answer, randomly choose one.
+        pred_index = random.choice(all_choices)
+    elif len(candidates) > 1:
+        start_indexes = []
+        if index_ans:
+            if ans_with_brack:
+                for can in candidates:
+                    index = response.rfind(f"({can})")
+                    start_indexes.append(index)  # -1 will be ignored anyway
+                # start_indexes = [generated_response.index(f'({can})') for can in candidates]
+            else:
+                for can in candidates:
+                    index = response.rfind(f" {can} ")
+                    start_indexes.append(index)
+        else:
+            for can in candidates:
+                index = response.lower().rfind(index2ans[can].lower())
+                start_indexes.append(index)
+        # get the last one
+        pred_index = candidates[np.argmax(start_indexes)]
+    else:  # if only one candidate, use it.
+        pred_index = candidates[0]
+
+    return pred_index
+
+def select_from_options(options):
+    all_choices = [option.split('.')[0] for option in options]
+    index2ans = {option.split('.')[0]: option.split('. ')[1][:-1] for option in options}
+    return all_choices, index2ans
+
 def eval_model(args):
     disable_torch_init()
     model_path = os.path.expanduser(args.model_path)
@@ -70,7 +139,8 @@ def eval_model(args):
     correct_val = 0
     all_val = 0
     for example in tqdm(val_dataset):
-        question = extract_question_and_following(example['inputs'])
+        question, options = extract_question_and_following(example)
+        all_choices, index2ans = select_from_options(options)
         images_group = []
         sub = ""
         for item in example['inputs']:
@@ -117,9 +187,11 @@ def eval_model(args):
             )
             outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0]
             print("outputs:",outputs)
+        pred_ans = parse_multi_choice_response(outputs, all_choices, index2ans)
+        print("pred_ans:",pred_ans)
         
         all_val += 1
-        if check_ans(pred=outputs, gt=correct_answer):
+        if pred_ans==correct_answer:
             correct_val += 1
         print(f"val correct: {correct_val/all_val * 100 :.2f}%")
     
