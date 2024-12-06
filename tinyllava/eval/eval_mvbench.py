@@ -4,6 +4,7 @@ import argparse
 import torch
 from tqdm import tqdm
 import shortuuid
+import random
 import cv2
 from decord import VideoReader, cpu
 from torch.utils.data import Dataset
@@ -170,13 +171,17 @@ class MVBench_dataset(Dataset):
         question = f"{data['question']}\n"
         answer = data['answer']
         answer_idx = -1
+        all_choices = []
+        index2ans = {}
         for idx, c in enumerate(data['candidates']):
             question += f"({chr(ord('A') + idx)}) {c}\n"
+            all_choices.append(chr(ord('A') + idx))
+            index2ans[chr(ord('A') + idx)] = c
             if c == answer:
                 answer_idx = idx
         question = question.rstrip()
-        answer = f"({chr(ord('A') + answer_idx)}) {answer}"
-        return question, answer
+        answer = f"{chr(ord('A') + answer_idx)}"
+        return question, answer, all_choices, index2ans
 
     def __getitem__(self, idx):
         decord_method = self.decord_method[self.data_list[idx]['data_type']]
@@ -188,12 +193,14 @@ class MVBench_dataset(Dataset):
             )
         video_path = os.path.join(self.data_list[idx]['prefix'], self.data_list[idx]['data']['video'])
         torch_imgs = decord_method(video_path, bound)
-        question, answer = self.qa_template(self.data_list[idx]['data'])
+        question, answer, all_choices, index2ans = self.qa_template(self.data_list[idx]['data'])
             
         return {
             'video': torch_imgs, 
             'question': question, 
             'answer': answer, 
+            'all_choices': all_choices,
+            'index2ans': index2ans,
             'task_type': self.data_list[idx]['task_type']
         }
 
@@ -217,6 +224,63 @@ def check_ans(pred, gt):
         flag = True
         
     return flag
+
+def parse_multi_choice_response(response, all_choices, index2ans):
+    """
+    Parse the prediction from the generated response.
+    Return the predicted index e.g., A, B, C, D.
+    """
+    response = response.strip()
+    for char in [",", ".", "!", "?", ";", ":", "'"]:
+        response = response.strip(char)
+    if response[0] in all_choices:
+        return response[0]
+    response = " " + response + " "  # add space to avoid partial match
+
+    index_ans = True
+    ans_with_brack = False
+    candidates = []
+    for choice in all_choices:  # e.g., (A) (B) (C) (D)
+        if f"({choice})" in response:
+            candidates.append(choice)
+            ans_with_brack = True
+
+    if len(candidates) == 0:
+        for choice in all_choices:  # e.g., A B C D
+            if f" {choice} " in response:
+                candidates.append(choice)
+
+    # if all above doesn't get candidates, check if the content is larger than 5 tokens and try to parse the example
+    if len(candidates) == 0 and len(response.split()) > 5:
+        for index, ans in index2ans.items():
+            if ans.lower() in response.lower():
+                candidates.append(index)
+                index_ans = False  # it's content ans.
+
+    if len(candidates) == 0:  # still not get answer, randomly choose one.
+        pred_index = random.choice(all_choices)
+    elif len(candidates) > 1:
+        start_indexes = []
+        if index_ans:
+            if ans_with_brack:
+                for can in candidates:
+                    index = response.rfind(f"({can})")
+                    start_indexes.append(index)  # -1 will be ignored anyway
+                # start_indexes = [generated_response.index(f'({can})') for can in candidates]
+            else:
+                for can in candidates:
+                    index = response.rfind(f" {can} ")
+                    start_indexes.append(index)
+        else:
+            for can in candidates:
+                index = response.lower().rfind(index2ans[can].lower())
+                start_indexes.append(index)
+        # get the last one
+        pred_index = candidates[np.argmax(start_indexes)]
+    else:  # if only one candidate, use it.
+        pred_index = candidates[0]
+
+    return pred_index
 
 def eval_model(args):
     # Model
@@ -250,7 +314,7 @@ def eval_model(args):
         
         question = example["question"]
         question = "<image>" + "\n" + question + "\n" + "Answer with the option's letter from the given choices directly."
-        #print("question:",question)
+        
         msg = Message()
         msg.add_message(question)
         result = text_processor(msg.messages, mode='eval')
@@ -273,14 +337,16 @@ def eval_model(args):
             print("outputs:",outputs)
     
         gt = example['answer']
-        print("ground truth:",gt)
+        print("ground truth:", gt)
+        pred_ans = parse_multi_choice_response(outputs, example['all_choices'], example['index2ans'])
+        print("pred_ans:", pred_ans)
         
         res_list.append({
-            'pred': outputs,
+            'pred': pred_ans,
             'gt': gt
         })
         
-        if check_ans(pred=outputs, gt=gt):
+        if pred_ans==gt:
             acc_dict[task_type][0] += 1
             correct += 1
         print(f"Part  Acc: {acc_dict[task_type][0] / acc_dict[task_type][1] * 100 :.2f}%")
