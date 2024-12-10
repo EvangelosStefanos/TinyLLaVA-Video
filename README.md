@@ -5,7 +5,7 @@
 
 ## 🎉 News
 
-- [2024-12] 🔈🔊 Our TinyLLaVA-Video-v1 repository has been established. [GitHub Repository](https://github.com/ZhangXJ199/TinyLLaVA-Video/tree/main)
+- [2024-12] 🔈🔊 Our [TinyLLaVA-Video-v1](https://github.com/ZhangXJ199/TinyLLaVA-Video/tree/main) repository has been established.
 
 ## 📌 About
 This is a framework of Small-scale Large Multimodal Models for video understanding based on [TinyLLaVA_Factory](https://github.com/TinyLLaVA/TinyLLaVA_Factory).
