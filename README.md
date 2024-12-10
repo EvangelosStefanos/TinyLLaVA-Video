@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-green)]()
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/ZhangXJ199/TinyLLaVA-Video/tree/main)
 
-##  News
+## 🎉 News
 
 - [2024-12] 🔈🔊 Our TinyLLaVA-Video-v1 repository has been established. [GitHub Repository](https://github.com/ZhangXJ199/TinyLLaVA-Video/tree/main)
 
