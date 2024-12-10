@@ -176,6 +176,7 @@ def eval_model(args):
             correct_val += 1
         print(f"val correct: {correct_val/all_val * 100 :.2f}%")
     
+    # code for testing
     """
     print("start to test!")
     results = {}
