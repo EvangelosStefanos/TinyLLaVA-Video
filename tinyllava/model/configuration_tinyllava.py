@@ -13,7 +13,6 @@ class TinyLlavaConfig(PretrainedConfig):
         vision_model_name_or_path = '',
         vision_model_name_or_path2 = '',
         connector_type = None,
-        connector_video_type = None,
         text_config=None,
         hidden_size=2048,
         vocab_size=32000,
@@ -47,7 +46,6 @@ class TinyLlavaConfig(PretrainedConfig):
         self.vision_model_name_or_path = vision_model_name_or_path
         self.vision_model_name_or_path2 = vision_model_name_or_path2
         self.connector_type = connector_type
-        self.connector_video_type = connector_video_type
         self.tune_type_llm = tune_type_llm
         self.tune_type_connector = tune_type_connector
         self.tune_type_vision_tower = tune_type_vision_tower
@@ -79,7 +77,6 @@ class TinyLlavaConfig(PretrainedConfig):
         self.vision_model_name_or_path = getattr(config, 'vision_tower',  '')
         self.vision_model_name_or_path2 = getattr(config, 'vision_tower2',  '')
         self.connector_type = getattr(config, 'connector_type',  None)
-        self.connector_video_type = getattr(config, 'connector_video_type',  None)
         self.vision_feature_layer = getattr(config, 'mm_vision_select_layer',  -2)
         self.vision_feature_select_strategy = getattr(config, 'mm_vision_select_feature',  "patch")
         self.image_aspect_ratio = getattr(config, 'image_aspect_ratio',  "pad")

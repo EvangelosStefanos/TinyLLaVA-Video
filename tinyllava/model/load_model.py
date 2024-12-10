@@ -53,10 +53,6 @@ def load_pretrained_model(model_name_or_path, load_type='hf', load_8bit=False, l
             connector_ckp = load_base_ckp_for_lora(connector_ckp_path)
             model.connector.load_state_dict(connector_ckp, strict=False)
 
-            connector_video_ckp_path = os.path.join(model_name_or_path, 'connector_video/pytorch_model.bin')
-            connector_video_ckp = load_base_ckp_for_lora(connector_video_ckp_path)
-            model.connector_video.load_state_dict(connector_video_ckp, strict=False)
-
             model.to(torch.float16)
             from peft import PeftModel
             print('Loading LoRA weights...')

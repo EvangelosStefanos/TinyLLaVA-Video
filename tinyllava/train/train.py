@@ -24,7 +24,6 @@ def load_settings(model_arguments, data_arguments, training_arguments):
     model_args['llm'] = _load_llm_settings(model_arguments)
     model_args['vision_tower'] = _load_vision_settings(model_arguments)
     model_args['connector'] = _load_connector_settings(model_arguments)
-    model_args['connector_video'] = _load_connector_video_settings(model_arguments)  
     return model_args
 
 def _load_llm_settings(model_arguments):
@@ -45,11 +44,6 @@ def _load_connector_settings(model_arguments):
     connector_args = {}
     connector_args['connector_type'] = model_arguments.connector_type
     return connector_args
-
-def _load_connector_video_settings(model_arguments):
-    connector_video_args = {}
-    connector_video_args['connector_video_type'] = model_arguments.connector_video_type
-    return connector_video_args
 
 
 def train():
@@ -76,7 +70,6 @@ def train():
         model.load_llm(**model_args['llm'])
         model.load_vision_tower(**model_args['vision_tower'])
         model.load_connector(**model_args['connector'])
-        model.load_connector_video(**model_args['connector_video'])
     model = training_recipe(model)
     model.config.use_cache = False
     model.config.image_aspect_ratio = data_arguments.image_aspect_ratio
@@ -84,24 +77,8 @@ def train():
     data_arguments.image_processor = model.vision_tower._image_processor
     data_arguments.is_multimodal = True
     log_trainable_params(model)  # not work well with zero3
-
-    if data_arguments.image_data_path is not None:
-        print("Start to train image!")
-        data_arguments.data_path = data_arguments.image_data_path
-        data_arguments.data_folder = data_arguments.image_folder
-        image_data_module = make_supervised_data_module(tokenizer=tokenizer,
-                                                        data_args=data_arguments)
-        #if training_arguments.pretrained_model_path is None:
-        #    training_arguments.per_device_train_batch_size = training_arguments.per_device_train_batch_size * 2
-        trainer = LLaVATrainer(model=model, #does not require model.to(device), huggingface/deepspeed does it for you?
-                               tokenizer=tokenizer,
-                               args=training_arguments,
-                               **image_data_module)
-        trainer.train()
         
     if data_arguments.video_data_path is not None:
-        if data_arguments.image_data_path is not None:
-            del image_data_module
         print("Start to train video!")
         data_arguments.data_path = data_arguments.video_data_path
         data_arguments.data_folder = data_arguments.video_folder

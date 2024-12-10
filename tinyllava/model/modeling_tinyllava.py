@@ -60,7 +60,6 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         self.language_model = LLMFactory(config.llm_model_name_or_path)[0](config.text_config)
         self.vision_tower = VisionTowerFactory(config.vision_model_name_or_path)(config.vision_config)
         self.connector = ConnectorFactory(config.connector_type)(config)
-        self.connector_video = ConnectorFactory(config.connector_video_type)(config)
 
         (Tokenizer, post_load) = LLMFactory(config.llm_model_name_or_path)[1]
         self.tokenizer = post_load(Tokenizer.from_pretrained(
@@ -197,15 +196,6 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             inputs_embeds=inputs_embeds,
             **kwargs
         )
-        
-    def encode_images(self, images):
-        kwargs = {}
-        kwargs['vision_feature_layer'] = self.config.vision_feature_layer
-        kwargs['vision_feature_select_strategy'] = self.config.vision_feature_select_strategy
-        images = images.to(device=self.device, dtype=self.dtype)
-        image_features = self.vision_tower(images, **kwargs) #torch.Size([bs, 728, 1152])
-        image_features = self.connector(image_features) #torch.Size([bs, 728, 2560])
-        return image_features
     
     def encode_videos(self, videos):
         kwargs = {}
@@ -218,7 +208,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             image_feature = self.vision_tower(video, **kwargs) #torch.Size([bs, 728, 1152])
             image_features.append(image_feature)
         image_features = torch.cat(image_features, dim=1) #torch.Size([bs, 728*16, 1152])
-        image_features = self.connector_video(image_features) #torch.Size([bs, 512, 2560])
+        image_features = self.connector(image_features) #torch.Size([bs, 512, 2560])
         return image_features
     
     
@@ -244,18 +234,8 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         if vision_tower is None or (images is None and videos is None) or input_ids.shape[1] == 1:
             return input_ids, position_ids, attention_mask, past_key_values, None, labels
 
-        if images is not None:
-            image_features = self.encode_images(images)
-        elif videos is not None:
+        if videos is not None:
             image_features = self.encode_videos(videos)
-        
-        #ano_features = self.encode_videos(ano)
-        #if torch.allclose(image_features, ano_features, atol=1e-6):
-        #    print("The tensors are exactly the same.")
-        #else:
-        #    print("The tensors are different.")
-        #    print("image_features:",image_features[0][1])
-        #    print("ano_features:",ano_features[0][1])
 
         # TODO: image start / end is not implemented here to support pretraining.
         if getattr(self.config, 'tune_mm_mlp_adapter', False):
@@ -406,8 +386,6 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
     def load_connector(self, **kwargs):
         self.connector.load_model(**kwargs)
 
-    def load_connector_video(self, **kwargs):
-        self.connector_video.load_model(**kwargs)
 
             
 
