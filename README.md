@@ -128,3 +128,21 @@ We currently provide evaluations on 3 benchmarks, including [Video-MME](https://
    ```bash
    CUDA_VISIBLE_DEVICES=0 bash scripts/eval/lvbench.sh
    ```
+
+## Model Zoo
+
+### Trained Models
+
+our trained models will coming soon.
+
+### Model Performance
+
+our trained models will coming soon.
+
+### Quick Inference Scripts
+
+
+
+## ❤️ Community efforts
+* This repository is based on [TinyLLaVA_Factory](https://github.com/TinyLLaVA/TinyLLaVA_Factory) project.
+* Our codebase is built upon the [LLaVA](https://github.com/haotian-liu/LLaVA) project. Great work!
