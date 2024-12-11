@@ -41,12 +41,21 @@ pip install -e .
 
 #### 1. Data Preparation
 
-We combine partial data from two datasets to train the model: [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K) and [
+We combine partial data from two datasets: [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K) and [
 Video-LLaVA](https://huggingface.co/datasets/LanguageBind/Video-LLaVA). 
+
+|   Stage  |             Source             |   #Sample   |
+|----------| :----------------------------: | :---------: |
+| Pretrain | LLaVA-Video-178K + Video-LLaVA |    397k     |
+| Finetune |        LLaVA-Video-178K        |    491k     |
 
 ##### Pretrain Data
 
+We use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K): ``0_30_s_academic_v0_1``, ``30_60_s_academic_v0_1``, ``0_30_s_youtube_v0_1``, and ``30_60_s_youtube_v0_1``, supplemented with the filtered [Video-LLaVA](https://huggingface.co/datasets/LanguageBind/Video-LLaVA). The organized pretraining annotations can be downloaded from here.
+
 ##### Finetune Data
+
+We only use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K): ``0_30_s_academic_v0_1``, ``30_60_s_academic_v0_1``, ``0_30_s_youtube_v0_1``, and ``30_60_s_youtube_v0_1``.
 
 ##### Organize Data
 
