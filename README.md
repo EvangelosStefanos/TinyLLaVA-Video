@@ -44,6 +44,10 @@ pip install -e .
 We combine partial data from two datasets to train the model: [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K) and [
 Video-LLaVA](https://huggingface.co/datasets/LanguageBind/Video-LLaVA). 
 
+##### Pretrain Data
+
+##### Finetune Data
+
 ##### Organize Data
 
 Organize the image files and annotation files as follows in ``path/to/your/dataset``:
