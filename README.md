@@ -91,4 +91,4 @@ You can refer to [TinyLLaVA_Factory](https://github.com/TinyLLaVA/TinyLLaVA_Fact
 
 #### 3. Evaluation
 
-
+We currently provide evaluations on 3 benchmarks, including [Video-MME](https://video-mme.github.io/home_page.html#leaderboard), [MVBench](https://huggingface.co/datasets/OpenGVLab/MVBench), [LongVideoBench](https://longvideobench.github.io/).
