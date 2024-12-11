@@ -62,13 +62,13 @@ We use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-l
 Organize the image files and annotation files as follows in ``path/to/your/dataset``:
 
 ```Shell
-   dataset
-   ├── academic_source
-   ├── liwei_youtube_videos
-   ├── valley
-   ├── text_files
-   │   ├── cleaned_video_caption.json
-   │   ├── cleaned_video_openqa.json
+dataset
+├── academic_source
+├── liwei_youtube_videos
+├── valley
+├── text_files
+│   ├── cleaned_video_caption.json
+│   ├── cleaned_video_openqa.json
 ```
    
 
@@ -106,12 +106,25 @@ We currently provide evaluations on 3 benchmarks, including [Video-MME](https://
 
 1. Download [Video-MME](https://huggingface.co/datasets/lmms-lab/Video-MME) and put it under ``path/to/your/dataset/eval/Video-MME``.
 2. Please change ``MODEL_PATH``, ``MODEL_NAME``, ``EVAL_DIR``, ``conv-mode`` and ``duration`` in ``scripts/eval/videomme.sh``. There are three types of ``duration`` available for testing: ``short``, ``medium``, and ``long``.
-3. Inference:
+3. Please use the following command for single-gpu inference.
    ```bash
    CUDA_VISIBLE_DEVICES=0 bash scripts/eval/videomme.sh
    ```
 
 ##### MVBench
 
+1. Download [MVBench](https://huggingface.co/datasets/OpenGVLab/MVBench) and put it under ``path/to/your/dataset/eval/MVBench``.
+2. Please change ``MODEL_PATH``, ``MODEL_NAME``, ``EVAL_DIR`` and ``conv-mode`` in ``scripts/eval/mvbench.sh``.
+3. Please use the following command for single-gpu inference.
+   ```bash
+   CUDA_VISIBLE_DEVICES=0 bash scripts/eval/mvbench.sh
+   ```
 
 ##### LongVideoBench
+
+1. Download [LongVideoBench](https://huggingface.co/datasets/longvideobench/LongVideoBench) and put it under ``path/to/your/dataset/eval/LongVideoBench``.
+2. Please change ``MODEL_PATH``, ``MODEL_NAME``, ``EVAL_DIR`` and ``conv-mode`` in ``scripts/eval/lvbench.sh``.
+3. Please use the following command for single-gpu inference.
+   ```bash
+   CUDA_VISIBLE_DEVICES=0 bash scripts/eval/lvbench.sh
+   ```
