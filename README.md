@@ -48,8 +48,7 @@ Video-LLaVA](https://huggingface.co/datasets/LanguageBind/Video-LLaVA).
 
 Organize the image files and annotation files as follows in ``path/to/your/dataset``:
 
-.. code-block:: bash
-
+```Shell
    dataset
    ├── academic_source
    ├── liwei_youtube_videos
@@ -57,6 +56,7 @@ Organize the image files and annotation files as follows in ``path/to/your/datas
    ├── text_files
    │   ├── cleaned_video_caption.json
    │   ├── cleaned_video_openqa.json
+```
    
 
 #### 2. Train
