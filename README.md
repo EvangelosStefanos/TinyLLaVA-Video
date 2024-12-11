@@ -74,6 +74,8 @@ dataset
 
 ### 2. Train
 
+You can refer to [TinyLLaVA_Factory](https://github.com/TinyLLaVA/TinyLLaVA_Factory) to modify components such as "llm," "vision_tower," and "train_recipe."
+
 Here's an example for training a LMM using Phi-2.
 
 - Replace data paths with yours in `scripts/train/train_phi.sh`
@@ -96,7 +98,6 @@ Important hyperparameters used in pretraining and finetuning are provided below.
 
 Global Batch Size = num of GPUs * `per_device_train_batch_size` * `gradient_accumulation_steps`, we recommand you always keep global batch size and learning rate as above except for lora tuning your model.
 
-You can refer to [TinyLLaVA_Factory](https://github.com/TinyLLaVA/TinyLLaVA_Factory) to modify components such as "llm," "vision_tower," and "train_recipe."
 
 ### 3. Evaluation
 
