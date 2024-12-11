@@ -30,7 +30,7 @@ pip install -e .
 ```Shell
 pip install flash-attn --no-build-isolation
 ```
-#### Upgrade to the latest code base
+##### Upgrade to the latest code base
 
 ```Shell
 git pull
@@ -39,7 +39,7 @@ pip install -e .
 
 ## Get Started
 
-#### 1. Data Preparation
+### 1. Data Preparation
 
 We combine partial data from two datasets: [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K) and [
 Video-LLaVA](https://huggingface.co/datasets/LanguageBind/Video-LLaVA). 
@@ -49,15 +49,15 @@ Video-LLaVA](https://huggingface.co/datasets/LanguageBind/Video-LLaVA).
 | Pretrain |   LLaVA-Video-178K + Video-LLaVA   |     397k      |
 | Finetune |          LLaVA-Video-178K          |     491k      |
 
-##### Pretrain Data
+#### Pretrain Data
 
 We use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K): ``0_30_s_academic_v0_1``, ``30_60_s_academic_v0_1``, ``0_30_s_youtube_v0_1``, and ``30_60_s_youtube_v0_1``, supplemented with the filtered [Video-LLaVA](https://huggingface.co/datasets/LanguageBind/Video-LLaVA). The organized pretraining annotations can be downloaded from here.
 
-##### Finetune Data
+#### Finetune Data
 
 We use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K): ``0_30_s_academic_v0_1``, ``30_60_s_academic_v0_1``, ``0_30_s_youtube_v0_1``, and ``30_60_s_youtube_v0_1``. The organized finetune annotations can be downloaded from here.
 
-##### Organize Data
+#### Organize Data
 
 Organize the image files and annotation files as follows in ``path/to/your/dataset``:
 
@@ -72,7 +72,7 @@ dataset
 ```
    
 
-#### 2. Train
+### 2. Train
 
 Here's an example for training a LMM using Phi-2.
 
@@ -98,11 +98,11 @@ Global Batch Size = num of GPUs * `per_device_train_batch_size` * `gradient_accu
 
 You can refer to [TinyLLaVA_Factory](https://github.com/TinyLLaVA/TinyLLaVA_Factory) to modify components such as "llm," "vision_tower," and "train_recipe."
 
-#### 3. Evaluation
+### 3. Evaluation
 
 We currently provide evaluations on 3 benchmarks, including [Video-MME](https://video-mme.github.io/home_page.html#leaderboard), [MVBench](https://huggingface.co/datasets/OpenGVLab/MVBench), [LongVideoBench](https://longvideobench.github.io/).
 
-##### Video-MME
+#### Video-MME
 
 1. Download [Video-MME](https://huggingface.co/datasets/lmms-lab/Video-MME) and put it under ``path/to/your/dataset/eval/Video-MME``.
 2. Please change ``MODEL_PATH``, ``MODEL_NAME``, ``EVAL_DIR``, ``conv-mode`` and ``duration`` in ``scripts/eval/videomme.sh``. There are three types of ``duration`` available for testing: ``short``, ``medium``, and ``long``.
@@ -111,7 +111,7 @@ We currently provide evaluations on 3 benchmarks, including [Video-MME](https://
    CUDA_VISIBLE_DEVICES=0 bash scripts/eval/videomme.sh
    ```
 
-##### MVBench
+#### MVBench
 
 1. Download [MVBench](https://huggingface.co/datasets/OpenGVLab/MVBench) and put it under ``path/to/your/dataset/eval/MVBench``.
 2. Please change ``MODEL_PATH``, ``MODEL_NAME``, ``EVAL_DIR`` and ``conv-mode`` in ``scripts/eval/mvbench.sh``.
@@ -120,7 +120,7 @@ We currently provide evaluations on 3 benchmarks, including [Video-MME](https://
    CUDA_VISIBLE_DEVICES=0 bash scripts/eval/mvbench.sh
    ```
 
-##### LongVideoBench
+#### LongVideoBench
 
 1. Download [LongVideoBench](https://huggingface.co/datasets/longvideobench/LongVideoBench) and put it under ``path/to/your/dataset/eval/LongVideoBench``.
 2. Please change ``MODEL_PATH``, ``MODEL_NAME``, ``EVAL_DIR`` and ``conv-mode`` in ``scripts/eval/lvbench.sh``.
@@ -141,7 +141,11 @@ our trained models will coming soon.
 
 ### Quick Inference Scripts
 
-
+1. Please change ``model_path``, ``prompt``, ``video_file`` and ``conv-mode`` in ``eval.py``.
+2.  Please use the following command for single-gpu inference.
+   ```bash
+   CUDA_VISIBLE_DEVICES=0 python eval.py
+   ```
 
 ## ❤️ Community efforts
 * This repository is based on [TinyLLaVA_Factory](https://github.com/TinyLLaVA/TinyLLaVA_Factory) project.
