@@ -41,7 +41,23 @@ pip install -e .
 
 #### 1. Data Preparation
 
+We combine partial data from two datasets to train the model: [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K) and [
+Video-LLaVA](https://huggingface.co/datasets/LanguageBind/Video-LLaVA). 
 
+##### Organize Data
+
+Organize the image files and annotation files as follows in ``path/to/your/dataset``:
+
+.. code-block:: bash
+
+   dataset
+   ├── academic_source
+   ├── liwei_youtube_videos
+   ├── valley
+   ├── text_files
+   │   ├── cleaned_video_caption.json
+   │   ├── cleaned_video_openqa.json
+   
 
 #### 2. Train
 
