@@ -55,7 +55,7 @@ We use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-l
 
 ##### Finetune Data
 
-We use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K): ``0_30_s_academic_v0_1``, ``30_60_s_academic_v0_1``, ``0_30_s_youtube_v0_1``, and ``30_60_s_youtube_v0_1``.
+We use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K): ``0_30_s_academic_v0_1``, ``30_60_s_academic_v0_1``, ``0_30_s_youtube_v0_1``, and ``30_60_s_youtube_v0_1``. The organized finetune annotations can be downloaded from here.
 
 ##### Organize Data
 
@@ -101,3 +101,17 @@ You can refer to [TinyLLaVA_Factory](https://github.com/TinyLLaVA/TinyLLaVA_Fact
 #### 3. Evaluation
 
 We currently provide evaluations on 3 benchmarks, including [Video-MME](https://video-mme.github.io/home_page.html#leaderboard), [MVBench](https://huggingface.co/datasets/OpenGVLab/MVBench), [LongVideoBench](https://longvideobench.github.io/).
+
+##### Video-MME
+
+1. Download [Video-MME](https://huggingface.co/datasets/lmms-lab/Video-MME) and put it under ``path/to/your/dataset/eval/Video-MME``.
+2. Please change ``MODEL_PATH``, ``MODEL_NAME``, ``EVAL_DIR``, ``conv-mode`` and ``duration`` in ``scripts/eval/videomme.sh``. There are three types of ``duration`` available for testing: ``short``, ``medium``, and ``long``.
+3. Inference:
+   ```bash
+   CUDA_VISIBLE_DEVICES=0 bash scripts/eval/videomme.sh
+   ```
+
+##### MVBench
+
+
+##### LongVideoBench
