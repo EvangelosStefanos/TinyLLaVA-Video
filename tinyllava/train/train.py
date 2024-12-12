@@ -81,7 +81,7 @@ def train():
     data_arguments.data_path = data_arguments.video_data_path
     data_arguments.data_folder = data_arguments.video_folder
     video_data_module = make_supervised_data_module(tokenizer=tokenizer,
-                                                        data_args=data_arguments)
+                                                    data_args=data_arguments)
     trainer = LLaVATrainer(model=model, #does not require model.to(device), huggingface/deepspeed does it for you?
                             tokenizer=tokenizer,
                             args=training_arguments,
