@@ -201,6 +201,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         kwargs = {}
         kwargs['vision_feature_layer'] = self.config.vision_feature_layer
         kwargs['vision_feature_select_strategy'] = self.config.vision_feature_select_strategy
+        
         videos = videos.to(device=self.device, dtype=self.dtype) #torch.Size([bs, 16, 3, 384, 384])
         videos = videos.permute(1, 0, 2, 3, 4)
         image_features = []

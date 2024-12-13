@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from . import register_connector
 from .base import Connector
-import torch
 from einops import rearrange, repeat
 from einops_exts import rearrange_many
 from torch import einsum
@@ -33,10 +32,11 @@ class PerceiverResampler(nn.Module):
         self.norm = nn.LayerNorm(dim)
 
     def forward(self, x):
+
         b, v = x.shape[:2]
         x = self.linear(x) #torch.Size([bs, 728*16, 2560])
         
-        position_encoding = self.position_encoding(v).to(device='cuda') # [1, seq_len, d_model]
+        position_encoding = self.position_encoding(v, x.dtype).to(device='cuda') # [1, seq_len, d_model]
         x = x + position_encoding
 
         latents = repeat(self.latents, "n d -> b T n d", b=b, T=1) #torch.Size([bs, 1, 512, 2560])
@@ -65,11 +65,11 @@ class PositionalEncoding(nn.Module):
         super().__init__()
         self.d_model = d_model
 
-    def forward(self, seq_len):
-        pe = torch.zeros(seq_len, self.d_model, device='cuda')
-        position = torch.arange(0, seq_len, device='cuda').unsqueeze(1).float()
+    def forward(self, seq_len, dtype):
+        pe = torch.zeros(seq_len, self.d_model, device='cuda').to(dtype)
+        position = torch.arange(0, seq_len, device='cuda').unsqueeze(1).to(dtype)
         div_term = torch.exp(
-            torch.arange(0, self.d_model, 2, device='cuda').float() * -(math.log(10000.0) / self.d_model)
+            torch.arange(0, self.d_model, 2, device='cuda').to(dtype) * -(math.log(10000.0) / self.d_model)
         )
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)

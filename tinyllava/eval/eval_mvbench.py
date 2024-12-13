@@ -131,7 +131,7 @@ class MVBench_dataset(Dataset):
         images_group = []
         frame_indices = self.get_index(bound, fps, max_frame, first_idx=0) 
         for frame_index in frame_indices:
-            img = torch.tensor(vr[frame_index].asnumpy(), dtype=args.dtype)
+            img = torch.tensor(vr[frame_index].asnumpy())
             img = self.video_processor(img)
             images_group.append(img)
         video_tensor = torch.stack(images_group)  # Shape: (num_segments, C, H, W)
@@ -147,7 +147,7 @@ class MVBench_dataset(Dataset):
         images_group = []
         frame_indices = self.get_index(bound, fps, max_frame, first_idx=0) 
         for frame_index in frame_indices:
-            img = vr[frame_index].to(dtype=args.dtype)
+            img = vr[frame_index]
             img = self.video_processor(img)
             images_group.append(img)
         video_tensor = torch.stack(images_group)  # Shape: (num_segments, C, H, W)
