@@ -40,7 +40,7 @@ deepspeed --include localhost:0,1 --master_port 29501 tinyllava/train/train.py \
     --fp16 True \
     --training_recipe $TRAIN_RECIPE \
     --tune_type_llm full \
-    --tune_type_vision_tower frozen\
+    --tune_type_vision_tower frozen \
     --tune_vision_tower_from_layer 0 \
     --tune_type_connector full \
     --group_by_modality_length False \

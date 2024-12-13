@@ -30,18 +30,16 @@ class PerceiverResampler(nn.Module):
                 )
             )
 
-        self.norm = nn.LayerNorm(dim, dtype=torch.float16)
+        self.norm = nn.LayerNorm(dim, dtype=self.dtype)
 
     def forward(self, x):
         b, v = x.shape[:2]
         x = self.linear(x) #torch.Size([bs, 728*16, 2560])
         
-        position_encoding = self.position_encoding(v).to(device='cuda', dtype=torch.float16)
+        position_encoding = self.position_encoding(v).to(device='cuda', dtype=self.dtype) # [1, seq_len, d_model]
         x = x + position_encoding
 
         latents = repeat(self.latents, "n d -> b T n d", b=b, T=1) #torch.Size([bs, 1, 512, 2560])
-        #position_encoding = self.position_encoding(x).to(device='cuda', dtype=torch.float16)
-        #latents = latents + position_encoding
 
         x = x.unsqueeze(1)
         for attn, ff in self.layers:
@@ -68,7 +66,7 @@ class PositionalEncoding(nn.Module):
         self.d_model = d_model
 
     def forward(self, seq_len):
-        pe = torch.zeros(seq_len, self.d_model, device='cuda', dtype=torch.float16)
+        pe = torch.zeros(seq_len, self.d_model, device='cuda', dtype=self.dtype)
         position = torch.arange(0, seq_len, device='cuda').unsqueeze(1).float()
         div_term = torch.exp(
             torch.arange(0, self.d_model, 2, device='cuda').float() * -(math.log(10000.0) / self.d_model)

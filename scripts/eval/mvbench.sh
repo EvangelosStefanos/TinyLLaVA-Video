@@ -1,8 +1,8 @@
 #!/bin/bash
 
-MODEL_PATH="/data/vlm/zxj/result/llava_video_factory-11.27/tiny-llava-Qwen2.5-3B-siglip-so400m-patch14-384-base-finetune"
-MODEL_NAME="tiny-llava-Qwen2.5-3B-siglip-so400m-patch14-384-base-finetune"
-EVAL_DIR="/data/vlm/zxj/data/MVBench"
+MODEL_PATH="/data/vlm/zxj/result/llava_video_factory/tiny-llava-phi-2-siglip-so400m-patch14-384-base-finetune"
+MODEL_NAME="tiny-llava-phi-2-siglip-so400m-patch14-384-base-finetune"
+EVAL_DIR="/data/vlm/zxj/data/mm_data/MVBench"
 
 python -m tinyllava.eval.eval_mvbench \
     --model-path $MODEL_PATH \

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-MODEL_PATH="/data/vlm/zxj/result/llava_video_factory-11.22/tiny-llava-phi-2-siglip-so400m-patch14-384-base-finetune"
+MODEL_PATH="/data/vlm/zxj/result/llava_video_factory/tiny-llava-phi-2-siglip-so400m-patch14-384-base-finetune"
 MODEL_NAME="tiny-llava-phi-2-siglip-so400m-patch14-384-base-finetune"
-EVAL_DIR="/data/vlm/zxj/data/Video-MME"
+EVAL_DIR="/data/vlm/zxj/data/mm_data/Video-MME"
 
 python -m tinyllava.eval.eval_videomme \
     --model-path $MODEL_PATH \
@@ -11,4 +11,4 @@ python -m tinyllava.eval.eval_videomme \
     --answers-file $EVAL_DIR/answers/$MODEL_NAME.jsonl \
     --temperature 0 \
     --conv-mode phi \
-    --duration long
+    --duration short
