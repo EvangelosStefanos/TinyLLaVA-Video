@@ -264,25 +264,24 @@ def eval_model(args):
         print(f"Part  Acc: {acc_dict[task_type][0] / acc_dict[task_type][1] * 100 :.2f}%")
         print('-' * 30, task_type, '-' * 30)
 
-
-    with open(args.answers_file, "w") as f:
-        json.dump({
-            "acc_dict": acc_dict,
-            "res_list": res_list
-        }, f)
-
     final_res = dict()
     total=0
     idx=0
     for k, v in acc_dict.items():
         idx+=1
         final_res[k] = v[0] / v[1] * 100  
-        total+=final_res[k]
+        total += final_res[k]
     final_res['Avg'] = total /idx 
     print(final_res)
 
-    with open(args.answers_file, "w") as f:
-        json.dump(final_res, f)
+    answers_file = os.path.expanduser(args.answers_file)
+    os.makedirs(os.path.dirname(answers_file), exist_ok=True)
+    with open(answers_file, "w") as f:
+        json.dump({
+            "acc_dict": acc_dict,
+            "res_list": res_list,
+            "final_res": final_res
+        }, f)
 
 
 if __name__ == '__main__':
