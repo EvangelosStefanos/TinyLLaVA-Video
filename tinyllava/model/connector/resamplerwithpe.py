@@ -66,7 +66,7 @@ class PositionalEncoding(nn.Module):
         self.d_model = d_model
 
     def forward(self, seq_len):
-        pe = torch.zeros(seq_len, self.d_model, device='cuda')
+        pe = torch.zeros(seq_len, self.d_model, device='cuda', dtype=torch.float16)
         position = torch.arange(0, seq_len, device='cuda').unsqueeze(1).float()
         div_term = torch.exp(
             torch.arange(0, self.d_model, 2, device='cuda').float() * -(math.log(10000.0) / self.d_model)
