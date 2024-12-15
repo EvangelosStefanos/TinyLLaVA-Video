@@ -132,7 +132,7 @@ We currently provide evaluations on 4 benchmarks, including [Video-MME](https://
 
 #### MLVU
 
-1. Download [MLVU]((https://huggingface.co/datasets/MLVU/MVLU)) and put it under ``path/to/your/dataset/eval/MLVU``.
+1. Download [MLVU](https://huggingface.co/datasets/MLVU/MVLU) and put it under ``path/to/your/dataset/eval/MLVU``.
 2. Please change ``MODEL_PATH``, ``MODEL_NAME``, ``EVAL_DIR`` and ``conv-mode`` in ``scripts/eval/mlvu.sh``.
 3. Please use the following command for single-gpu inference.
    ```bash
