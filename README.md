@@ -91,8 +91,8 @@ Important hyperparameters used in pretraining and finetuning are provided below.
 
 | Training Stage | Global Batch Size | Learning rate | conv_version |
 | -------------- | :---------------: | :-----------: | :----------: |
-| Pretraining    | 256               | 1e-3          | pretrain     |
-| Finetuning     | 128               | 2e-5          | phi          |
+| Pretraining    | 128               | 1e-4          | pretrain     |
+| Finetuning     | 64                | 2e-5          | phi          |
 
 **Tips:** 
 
