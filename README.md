@@ -91,8 +91,8 @@ Important hyperparameters used in pretraining and finetuning are provided below.
 
 | Training Stage | Global Batch Size | Learning rate | conv_version |
 | -------------- | :---------------: | :-----------: | :----------: |
-| Pretraining    | 256               | 1e-3          | pretrain     |
-| Finetuning     | 128               | 2e-5          | phi          |
+| Pretraining    | 128               | 1e-4          | pretrain     |
+| Finetuning     | 64                | 2e-5          | phi          |
 
 **Tips:** 
 
@@ -101,7 +101,7 @@ Global Batch Size = num of GPUs * `per_device_train_batch_size` * `gradient_accu
 
 ### 3. Evaluation
 
-We currently provide evaluations on 3 benchmarks, including [Video-MME](https://video-mme.github.io/home_page.html#leaderboard), [MVBench](https://huggingface.co/datasets/OpenGVLab/MVBench), [LongVideoBench](https://longvideobench.github.io/).
+We currently provide evaluations on 4 benchmarks, including [Video-MME](https://video-mme.github.io/home_page.html#leaderboard), [MVBench](https://huggingface.co/datasets/OpenGVLab/MVBench), [LongVideoBench](https://longvideobench.github.io/), [MLVU](https://github.com/JUNJIE99/MLVU).
 
 #### Video-MME
 
@@ -128,6 +128,15 @@ We currently provide evaluations on 3 benchmarks, including [Video-MME](https://
 3. Please use the following command for single-gpu inference.
    ```bash
    CUDA_VISIBLE_DEVICES=0 bash scripts/eval/lvbench.sh
+   ```
+
+#### MLVU
+
+1. Download [MLVU](https://huggingface.co/datasets/MLVU/MVLU) and put it under ``path/to/your/dataset/eval/MLVU``.
+2. Please change ``MODEL_PATH``, ``MODEL_NAME``, ``EVAL_DIR`` and ``conv-mode`` in ``scripts/eval/mlvu.sh``.
+3. Please use the following command for single-gpu inference.
+   ```bash
+   CUDA_VISIBLE_DEVICES=0 bash scripts/eval/mlvu.sh
    ```
 
 ## Model Zoo
