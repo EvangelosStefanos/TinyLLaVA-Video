@@ -181,7 +181,8 @@ def eval_model(args):
     print("start to test!")
     results = {}
     for example in tqdm(test_dataset):
-        question = extract_question_and_following(example)
+        question, options = extract_question_and_following(example)
+        all_choices, index2ans = select_from_options(options)
         video_id = example['id']
         images = [item for item in example['inputs'] if isinstance(item, Image.Image)]
         
@@ -209,10 +210,9 @@ def eval_model(args):
             outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0]
             #print("outputs:",outputs)
         
-        outputs = outputs.strip()
-        pred_option = outputs[0].upper()
-        #print("pred_option:",pred_option)
-        results[video_id] = pred_option
+        pred_ans = parse_multi_choice_response(outputs, all_choices, index2ans)
+        #print("pred_option:",pred_ans)
+        results[video_id] = pred_ans
     
     with open(args.answers_file, "w") as f:
         json.dump(results, f, indent=4)
