@@ -88,20 +88,20 @@ def eval_model(args):
         images_tensor = images_tensor.unsqueeze(0).half().cuda()
     
     if args.video_file is not None:
-        num_frames = args.num_frame
-
         video = EncodedVideo.from_path(args.video_file, decoder="decord", decode_audio=False)
         duration = video.duration
         video_data = video.get_clip(start_sec=0.0, end_sec=duration)
         video_data = video_data['video'].permute(1, 0, 2, 3) #torch.Size([l, 3, W, H])
 
         total_frames = video_data.shape[0]
-        frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
+        if args.num_frame > 0:
+            frame_indices = np.linspace(0, total_frames - 1, args.num_frame, dtype=int)
+        else:
+            num_frames_to_extract = min(args.max_frame, max(1, int(duration)))
+            frame_indices = np.linspace(0, total_frames - 1, num_frames_to_extract, dtype=int)
         video_data = video_data[frame_indices]
-        #video_data = [None]*len(video_datas)
-        #for i in range(len(video_datas)):
-        #    video_data[i] = video_datas[len(video_datas)-1-i]
-        save_frames(video_data)
+
+        #save_frames(video_data)
 
         videos = []
         for video in video_data:
@@ -109,17 +109,6 @@ def eval_model(args):
             videos.append(video)
         video_tensor = torch.stack(videos)
         video_tensor = video_tensor.unsqueeze(dim=0)
-        #print("video_tensor:",video_tensor.shape)
-
-        #ano_data = [None]*len(video_data)
-        #for i in range(len(video_data)):
-        #    ano_data[i] = video_data[len(video_data)-1-i]
-        #anos = []
-        #for video in ano_data:
-        #    video = video_preprocess(video)
-        #    anos.append(video)
-        #anos_tensor = torch.stack(anos)
-        #anos_tensor = anos_tensor.unsqueeze(dim=0)
 
     stop_str = text_processor.template.separator.apply()[1]
     keywords = [stop_str]
@@ -163,6 +152,7 @@ if __name__ == "__main__":
     parser.add_argument("--top_p", type=float, default=None)
     parser.add_argument("--num_beams", type=int, default=1)
     parser.add_argument("--num_frame", type=int, default=1)
+    parser.add_argument("--max_frame", type=int, default=1)
     parser.add_argument("--max_new_tokens", type=int, default=512)
     args = parser.parse_args()
 

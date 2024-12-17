@@ -17,6 +17,7 @@ args = type('Args', (), {
     "top_p": None,
     "num_beams": 1,
     "num_frame": 16,
+    "max_frame": 16,
     "max_new_tokens": 512
 })()
 

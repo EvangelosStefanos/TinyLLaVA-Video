@@ -10,5 +10,7 @@ python -m tinyllava.eval.eval_mlvu \
     --question-file $EVAL_DIR/json \
     --answers-file $EVAL_DIR/answers/$MODEL_NAME.jsonl \
     --temperature 0 \
+    --conv-mode phi \
     --num_frame 16 \
-    --conv-mode phi
+    --max_frame 16 
+    

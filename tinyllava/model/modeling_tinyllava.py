@@ -201,7 +201,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         kwargs = {}
         kwargs['vision_feature_layer'] = self.config.vision_feature_layer
         kwargs['vision_feature_select_strategy'] = self.config.vision_feature_select_strategy
-        
+        """
         videos = videos.to(device=self.device, dtype=self.dtype) #torch.Size([bs, 16, 3, 384, 384])
         videos = videos.permute(1, 0, 2, 3, 4)
         image_features = []
@@ -210,6 +210,16 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             image_features.append(image_feature)
         image_features = torch.cat(image_features, dim=1) #torch.Size([bs, 728*16, 1152])
         image_features = self.connector(image_features) #torch.Size([bs, 512, 2560])
+        """
+        image_features = []
+        for video in videos:
+            video = video.to(device=self.device, dtype=self.dtype) #torch.Size([frame, 3, 384, 384])
+            image_feature = self.vision_tower(video, **kwargs) #torch.Size([frame, 728, 1152])
+            last_dim = image_feature.shape[-1]
+            image_feature = image_feature.reshape(1, -1, last_dim) #torch.Size([1, frame*728, 1152])
+            image_feature = self.connector(image_feature) #torch.Size([1, 512, 2560])
+            image_features.append(image_feature)
+        image_features = torch.cat(image_features, dim=0) #torch.Size([bs, 512, 2560])
         return image_features
     
     

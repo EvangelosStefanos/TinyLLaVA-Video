@@ -21,7 +21,7 @@ NUM_QUERY="${11}"
 VT_VARIANT="${VT_VERSION##*/}"
 LLM_VARIANT="${LLM_VERSION##*/}"
 
-deepspeed --include localhost:0,1,6,7 --master_port 29501 tinyllava/train/train.py \
+deepspeed --include localhost:0,1,2,3 --master_port 29501 tinyllava/train/train.py \
     --deepspeed ./scripts/zero3.json \
     --video_data_path  $VIDEO_DATA_PATH \
     --video_folder $VIDEO_PATH \

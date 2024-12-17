@@ -181,10 +181,15 @@ data_list = {
         "topic_reasoning": ("7_topic_reasoning.json", f"/7_topic_reasoning", "video")
     }
 
-def get_video_frames(video_path, num_frames=16):
+def get_video_frames(video_path, num_frames=16, max_frames=16):
     container = av.open(video_path)
     total_frames = container.streams.video[0].frames
-    frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
+    duration = container.streams.video[0].duration
+    if num_frames > 0:
+        frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
+    else:
+        num_frames_to_extract = min(max_frames, max(1, int(duration)))
+        frame_indices = np.linspace(0, total_frames - 1, num_frames_to_extract, dtype=int)
     frames = []
     for i, frame in enumerate(container.decode(video=0)):
         if i in frame_indices:
@@ -226,7 +231,7 @@ def eval_model(args):
         input_ids = result['input_ids']
         input_ids = input_ids.unsqueeze(0).cuda()
 
-        frames = get_video_frames(video_path, args.num_frame)
+        frames = get_video_frames(video_path, args.num_frame, args.max_frame)
         video_tensor = torch.stack([video_processor(frame) for frame in frames])
         video_tensor = video_tensor.unsqueeze(dim=0)
         
@@ -289,6 +294,7 @@ if __name__ == '__main__':
     parser.add_argument("--chunk-idx", type=int, default=0)
     parser.add_argument("--num_beams", type=int, default=1)
     parser.add_argument("--num_frame", type=int, default=16)
+    parser.add_argument("--max_frame", type=int, default=16)
     parser.add_argument("--answer-prompter", action="store_true")
     parser.add_argument("--image_aspect_ratio", type=str, default="pad")
     args = parser.parse_args()

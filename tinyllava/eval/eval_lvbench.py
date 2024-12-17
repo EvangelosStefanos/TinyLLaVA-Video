@@ -42,23 +42,6 @@ def read_frame(images, video_processor):
     torch_imgs = torch_imgs.unsqueeze(0)
     return torch_imgs
 
-def check_ans(pred, gt):
-    flag = False
-    
-    pred = pred.strip()
-    gt = gt.strip()
-    
-    pred_list = pred.lower().split(' ')
-    pred_option, pred_content = pred_list[0], ' '.join(pred_list[1:])
-    gt = gt.lower() 
-    
-    if gt in pred_option.replace('.', ''):
-        flag = True
-    elif gt in pred_option:
-        flag = True
-        
-    return flag
-
 def parse_multi_choice_response(response, all_choices, index2ans):
     """
     Parse the prediction from the generated response.
@@ -131,9 +114,8 @@ def eval_model(args):
     data_args = model.config
     video_processor = VideoPreprocess(image_processor, data_args)
     
-    val_dataset = LongVideoBenchDataset(args.data_folder, "lvb_val.json", max_num_frames=16)
-    test_dataset = LongVideoBenchDataset(args.data_folder, "lvb_test_wo_gt.json", max_num_frames=16)
-
+    val_dataset = LongVideoBenchDataset(args.data_folder, "lvb_val.json", num_frame=args.num_frame, max_num_frames=args.max_frame)
+    #test_dataset = LongVideoBenchDataset(args.data_folder, "lvb_test_wo_gt.json", max_num_frames=max_num_frames)
     
     print("start to val!")
     correct_val = 0
@@ -141,18 +123,36 @@ def eval_model(args):
     for example in tqdm(val_dataset):
         question, options = extract_question_and_following(example)
         all_choices, index2ans = select_from_options(options)
-        images = [item for item in example['inputs'] if isinstance(item, Image.Image)]
+        #images = [item for item in example['inputs'] if isinstance(item, Image.Image)]
+        #video_tensor = read_frame(images, video_processor)
+        #question = "<image>" + "\n" + question
+        #print("question:",question)
+        
+        images_group = []
+        sub = ""
+        for item in example['inputs']:
+            if isinstance(item, Image.Image):
+                img = item.convert("RGB")
+                img = video_processor(img)
+                images_group.append(img)
+                sub = sub + "[image]"
+            elif isinstance(item, str) and not item.startswith("Question:"):
+                sub = sub + item
+            else:
+                break
+        torch_imgs = torch.stack(images_group)
+        video_tensor = torch_imgs.unsqueeze(0)
+        sub = "subtitles:" + sub
+        question = sub + "\n" + "question: <image>" + "\n" + question
+        
         correct_answer = example['correct_choice']
         print("correct_answer:", correct_answer)
         
-        question = "<image>" + "\n" + question
         msg = Message()
         msg.add_message(question)
         result = text_processor(msg.messages, mode='eval')
         input_ids = result['input_ids']
         input_ids = input_ids.unsqueeze(0).cuda()
-        
-        video_tensor = read_frame(images, video_processor)
         
         with torch.inference_mode():
             output_ids = model.generate(
@@ -231,6 +231,8 @@ if __name__ == "__main__":
     parser.add_argument("--num-chunks", type=int, default=1)
     parser.add_argument("--chunk-idx", type=int, default=0)
     parser.add_argument("--num_beams", type=int, default=1)
+    parser.add_argument("--num_frame", type=int, default=1)
+    parser.add_argument("--max_frame", type=int, default=1)
     parser.add_argument("--answer-prompter", action="store_true")
     parser.add_argument("--image_aspect_ratio", type=str, default="pad")
     args = parser.parse_args()

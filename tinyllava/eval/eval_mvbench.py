@@ -37,7 +37,7 @@ data_list = {
 }
 
 class MVBench_dataset(Dataset):
-    def __init__(self, data_dir, data_list, video_processor, num_segments=16):
+    def __init__(self, data_dir, data_list, video_processor, num_frames=16, max_num_frames=16):
         self.data_list = []
         for k, v in data_list.items():
             with open(os.path.join(data_dir, v[0]), 'r') as f:
@@ -59,7 +59,8 @@ class MVBench_dataset(Dataset):
         }
         
         self.video_processor = video_processor
-        self.num_segments = num_segments
+        self.num_frames = num_frames
+        self.max_num_frames = max_num_frames
 
     
     def __str__(self):
@@ -87,21 +88,21 @@ class MVBench_dataset(Dataset):
     def __len__(self):
         return len(self.data_list)
     
-    def get_index(self, bound, fps, max_frame, first_idx=0):
+    def get_index(self, bound, fps, max_frame, first_idx=0, num_frame=16):
         if bound:
             start, end = bound[0], bound[1]
         else:
             start, end = -100000, 100000
         start_idx = max(first_idx, round(start * fps))
         end_idx = min(round(end * fps), max_frame)
-        seg_size = float(end_idx - start_idx) / self.num_segments
+        seg_size = float(end_idx - start_idx) / num_frame
         frame_indices = np.array([
             int(start_idx + (seg_size / 2) + np.round(seg_size * idx))
-            for idx in range(self.num_segments)
+            for idx in range(num_frame)
         ])
         return frame_indices
     
-    def read_video(self, video_path, bound=None):
+    def read_video(self, video_path):
         video = EncodedVideo.from_path(video_path, decoder="decord", decode_audio=False)
         duration = video.duration
         try:
@@ -111,7 +112,11 @@ class MVBench_dataset(Dataset):
         video_data = video_data['video'].permute(1, 0, 2, 3) #torch.Size([l, 3, W, H])
 
         total_frames = video_data.shape[0]
-        frame_indices = np.linspace(0, total_frames - 1, self.num_segments, dtype=int)
+        if self.num_frames > 0:
+            frame_indices = np.linspace(0, total_frames - 1, self.num_frames, dtype=int)
+        else:
+            num_frames_to_extract = min(self.max_num_frames, max(1, int(duration)))
+            frame_indices = np.linspace(0, total_frames - 1, num_frames_to_extract, dtype=int)
         video_data = video_data[frame_indices]
         
         videos = []
@@ -127,9 +132,14 @@ class MVBench_dataset(Dataset):
         vr = VideoReader(video_path, ctx=cpu(0), num_threads=1)
         max_frame = len(vr) - 1
         fps = float(vr.get_avg_fps())
+        duration = len(vr) / fps
         
         images_group = []
-        frame_indices = self.get_index(bound, fps, max_frame, first_idx=0) 
+        if self.num_frames > 0:
+            num_frames_to_extract = self.num_frames
+        else:
+            num_frames_to_extract = min(self.max_num_frames, max(1, int(duration)))
+        frame_indices = self.get_index(bound, fps, max_frame, first_idx=0, num_frame=num_frames_to_extract) 
         for frame_index in frame_indices:
             img = torch.tensor(vr[frame_index].asnumpy())
             img = self.video_processor(img)
@@ -143,11 +153,16 @@ class MVBench_dataset(Dataset):
         vr = VideoReader(video_path, ctx=cpu(0), num_threads=1)
         max_frame = len(vr) - 1
         fps = float(vr.get_avg_fps())
+        duration = len(vr) / fps
         
         images_group = []
-        frame_indices = self.get_index(bound, fps, max_frame, first_idx=0) 
+        if self.num_frames > 0:
+            num_frames_to_extract = self.num_frames
+        else:
+            num_frames_to_extract = min(self.max_num_frames, max(1, int(duration)))
+        frame_indices = self.get_index(bound, fps, max_frame, first_idx=0, num_frame=num_frames_to_extract) 
         for frame_index in frame_indices:
-            img = vr[frame_index]
+            img = torch.tensor(vr[frame_index].asnumpy())
             img = self.video_processor(img)
             images_group.append(img)
         video_tensor = torch.stack(images_group)  # Shape: (num_segments, C, H, W)
@@ -157,8 +172,15 @@ class MVBench_dataset(Dataset):
     
     def read_frame(self, video_path, bound=None, fps=3):
         max_frame = len(os.listdir(video_path))
+        duration = max_frame / fps
         images_group = list()
-        frame_indices = self.get_index(bound, fps, max_frame, first_idx=1)
+
+        images_group = []
+        if self.num_frames > 0:
+            num_frames_to_extract = self.num_frames
+        else:
+            num_frames_to_extract = min(self.max_num_frames, max(1, int(duration)))
+        frame_indices = self.get_index(bound, fps, max_frame, first_idx=1, num_frame=num_frames_to_extract)
         for frame_index in frame_indices:
             img = Image.open(os.path.join(video_path, f"{frame_index:05d}.jpg")).convert("RGB")
             img = self.video_processor(img)
@@ -204,26 +226,6 @@ class MVBench_dataset(Dataset):
             'task_type': self.data_list[idx]['task_type']
         }
 
-def check_ans(pred, gt):
-    flag = False
-    
-    pred = pred.strip()
-    gt = gt.strip()
-    
-    pred_list = pred.lower().split(' ')
-    #print("pred_list:",pred_list)
-    pred_option, pred_content = pred_list[0], ' '.join(pred_list[1:])
-    gt_list = gt.lower().split(' ')
-    gt_option, gt_content = gt_list[0], ' '.join(gt_list[1:])
-    if gt_content[-1] == '.':
-        gt_content = gt_content[:-1]
-    
-    if pred_option.replace('.', '') in gt_option:
-        flag = True
-    elif gt_option in pred_option:
-        flag = True
-        
-    return flag
 
 def parse_multi_choice_response(response, all_choices, index2ans):
     """
@@ -297,7 +299,7 @@ def eval_model(args):
         key: (val[0], args.image_folder + val[1], val[2], val[3]) for key, val in data_list.items()
     }
     
-    dataset = MVBench_dataset(args.question_file, updated_data_list, video_processor)
+    dataset = MVBench_dataset(args.question_file, updated_data_list, video_processor, num_frames=args.num_frame, max_num_frames=args.max_frame)
     
     correct = 0
     total = 0
@@ -384,6 +386,8 @@ if __name__ == "__main__":
     parser.add_argument("--num-chunks", type=int, default=1)
     parser.add_argument("--chunk-idx", type=int, default=0)
     parser.add_argument("--num_beams", type=int, default=1)
+    parser.add_argument("--num_frame", type=int, default=1)
+    parser.add_argument("--max_frame", type=int, default=1)
     parser.add_argument("--answer-prompter", action="store_true")
     parser.add_argument("--image_aspect_ratio", type=str, default="pad")
     args = parser.parse_args()

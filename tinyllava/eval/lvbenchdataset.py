@@ -33,6 +33,7 @@ def load_video(video_file, duration, max_num_frames=16):
     
     return [Image.fromarray(fr).convert("RGB") for fr in frames], frame_timestamps
 
+
 def insert_subtitles(subtitles):
     interleaved_list = []
     cur_i = 0
@@ -111,6 +112,7 @@ class LongVideoBenchDataset(Dataset):
     def __init__(self,
                  data_path,
                  annotation_file,
+                 num_frame=16,
                  max_num_frames=256,
                  insert_text=True,
                  insert_frame=True,
@@ -122,7 +124,7 @@ class LongVideoBenchDataset(Dataset):
         with open(os.path.join(data_path, annotation_file)) as f:
             self.data = json.load(f)
         self.max_num_frames = max_num_frames
-        
+        self.num_frames = num_frame
         
         
     def __getitem__(self, index):
@@ -143,9 +145,13 @@ class LongVideoBenchDataset(Dataset):
             inputs += [". ".join([chr(ord("A")+i), candidate]) for i, candidate in enumerate(di["candidates"])]
             inputs += ["Answer with the option's letter from the given choices directly."]
             return {"inputs": inputs, "correct_choice": chr(ord("A")+di["correct_choice"]), "id": di["id"]}
-            
-        frames, frame_timestamps = load_video(os.path.join(self.data_path, "videos", di["video_path"]), di["duration"], max_num_frames=self.max_num_frames)
         
+        if self.num_frames > 0:
+            max_num_frames = self.num_frames
+        else:
+            max_num_frames = min(self.max_num_frames, max(1, di["duration"]))
+        print("duration:",di["duration"])
+        frames, frame_timestamps = load_video(os.path.join(self.data_path, "videos", di["video_path"]), di["duration"], max_num_frames=max_num_frames)
             
         with open(os.path.join(self.data_path, "subtitles", di["subtitle_path"])) as f:
             subtitles = json.load(f)
