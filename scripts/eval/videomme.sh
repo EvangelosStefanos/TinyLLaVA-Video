@@ -4,6 +4,7 @@ MODEL_PATH="/data/vlm/zxj/result/llava_video_factory/tiny-llava-phi-2-siglip-so4
 MODEL_NAME="tiny-llava-phi-2-siglip-so400m-patch14-384-base-finetune"
 EVAL_DIR="/data/vlm/zxj/data/mm_data/Video-MME"
 
+# num_frame=-1 means 1fps
 python -m tinyllava.eval.eval_videomme \
     --model-path $MODEL_PATH \
     --question-file $EVAL_DIR/videomme/test-00000-of-00001.parquet \

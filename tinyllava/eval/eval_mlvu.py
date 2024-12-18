@@ -270,7 +270,16 @@ def eval_model(args):
         print(f"Overall  Acc: {correct / total * 100 :.2f}%")
         print('-' * 30, task_type, '-' * 30)
 
-    final_res = correct / total * 100
+    #final_res = correct / total * 100
+    final_res = dict()
+    total=0
+    idx=0
+    for k, v in acc_dict.items():
+        idx+=1
+        final_res[k] = v[0] / v[1] * 100  
+        total+=final_res[k]
+    final_res['Avg'] = total /idx 
+    print(final_res)
 
     answers_file = os.path.expanduser(args.answers_file)
     os.makedirs(os.path.dirname(answers_file), exist_ok=True)

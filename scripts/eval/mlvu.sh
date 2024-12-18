@@ -4,6 +4,7 @@ MODEL_PATH="/data/vlm/zxj/result/llava_video_factory-12.6/tiny-llava-phi-2-sigli
 MODEL_NAME="tiny-llava-phi-2-siglip-so400m-patch14-384-base-finetune"
 EVAL_DIR="/data/vlm/zxj/data/MLVU"
 
+# num_frame=-1 means 1fps
 python -m tinyllava.eval.eval_mlvu \
     --model-path $MODEL_PATH \
     --video-folder $EVAL_DIR/video \

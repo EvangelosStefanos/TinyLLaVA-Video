@@ -11,7 +11,7 @@ CONV_VERSION=phi #chat template, other options are: phi, llama, gemmma, etc
 VERSION=base #experiment name for recording different runnings
 TRAIN_RECIPE=common #training recipes, other options are: lora, qlora
 MODEL_MAX_LENGTH=3072 #max model length for llm
-NUM_FRAME=16
+NUM_FRAME=16 # -1 means 1fps
 NUM_QUERY=512
 
 bash scripts/train/pretrain_video.sh "$VIDEO_DATA_PATH" "$VIDEO_PATH" "$LLM_VERSION" "$VT_VERSION" "$VT_VERSION2" "$CN_VERSION" "$VERSION" "$TRAIN_RECIPE" "$MODEL_MAX_LENGTH" "$NUM_FRAME" "$NUM_QUERY"

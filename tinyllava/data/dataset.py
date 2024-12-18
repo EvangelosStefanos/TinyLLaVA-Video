@@ -83,7 +83,8 @@ class LazySupervisedDataset(Dataset):
             if self.num_frames > 0:
                 frame_indices = np.linspace(0, total_frames - 1, self.num_frames, dtype=int)
             else:
-                num_frames_to_extract = min(64, max(1, int(duration))) # 99.75% of train data < 1min
+                #num_frames_to_extract = min(64, max(1, int(duration))) # 99.75% of train data < 1min
+                num_frames_to_extract = max(1, int(duration))
                 frame_indices = np.linspace(0, total_frames - 1, num_frames_to_extract, dtype=int)
             video_data = video_data[frame_indices] #torch.Size([8, 3, W, H])
 
