@@ -150,7 +150,7 @@ class LongVideoBenchDataset(Dataset):
             max_num_frames = self.num_frames
         else:
             max_num_frames = min(self.max_num_frames, max(1, di["duration"]))
-        print("duration:",di["duration"])
+        
         frames, frame_timestamps = load_video(os.path.join(self.data_path, "videos", di["video_path"]), di["duration"], max_num_frames=max_num_frames)
             
         with open(os.path.join(self.data_path, "subtitles", di["subtitle_path"])) as f:

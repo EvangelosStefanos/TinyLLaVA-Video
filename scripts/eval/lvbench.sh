@@ -11,5 +11,5 @@ python -m tinyllava.eval.eval_lvbench \
     --answers-file $EVAL_DIR/answers/$MODEL_NAME.jsonl \
     --temperature 0 \
     --conv-mode phi \
-    --num-frame 16 \
-    --max-frame 16 
+    --num_frame 16 \
+    --max_frame 16 

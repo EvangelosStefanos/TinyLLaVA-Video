@@ -186,16 +186,16 @@ def get_video_frames(video_path, num_frames=16, max_frames=16):
     total_frames = container.streams.video[0].frames
     duration = container.streams.video[0].duration
     if num_frames > 0:
-        frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
+        num_frames_to_extract = num_frames
     else:
         num_frames_to_extract = min(max_frames, max(1, int(duration)))
-        frame_indices = np.linspace(0, total_frames - 1, num_frames_to_extract, dtype=int)
+    frame_indices = np.linspace(0, total_frames - 1, num_frames_to_extract, dtype=int)
     frames = []
     for i, frame in enumerate(container.decode(video=0)):
         if i in frame_indices:
             img = frame.to_image()
             frames.append(img)
-        if len(frames) >= num_frames:
+        if len(frames) >= num_frames_to_extract:
             break
     return frames
 

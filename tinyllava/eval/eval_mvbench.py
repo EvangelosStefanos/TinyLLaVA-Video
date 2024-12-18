@@ -102,7 +102,7 @@ class MVBench_dataset(Dataset):
         ])
         return frame_indices
     
-    def read_video(self, video_path):
+    def read_video(self, video_path, bound=None):
         video = EncodedVideo.from_path(video_path, decoder="decord", decode_audio=False)
         duration = video.duration
         try:
