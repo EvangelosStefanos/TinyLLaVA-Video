@@ -279,7 +279,7 @@ def eval_model(args):
         final_res[k] = v[0] / v[1] * 100  
         total+=final_res[k]
     final_res['Avg'] = total /idx 
-    print(final_res)
+    print("final_res:", final_res)
 
     answers_file = os.path.expanduser(args.answers_file)
     os.makedirs(os.path.dirname(answers_file), exist_ok=True)

@@ -36,7 +36,7 @@ deepspeed --include localhost:0,1,2,3 --master_port 29501 tinyllava/train/train.
     --mm_vision_select_layer -2 \
     --image_aspect_ratio square \
     --attn_implementation flash_attention_2 \
-    --bf16 True \
+    --fp16 True \
     --training_recipe $TRAIN_RECIPE \
     --tune_type_llm frozen \
     --tune_type_vision_tower frozen \

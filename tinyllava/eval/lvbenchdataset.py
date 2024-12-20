@@ -20,7 +20,7 @@ def load_video(video_file, duration, max_num_frames=16):
     vr = VideoReader(video_file, ctx=cpu(0), num_threads=1)
     fps = vr.get_avg_fps()
     total_valid_frames = int(duration * fps)
-    num_frames = min(max_num_frames, int(duration))
+    num_frames = int(min(max_num_frames, int(duration)))
 
     frame_indices = [int(total_valid_frames / num_frames) * i for i in range(num_frames)]
     
