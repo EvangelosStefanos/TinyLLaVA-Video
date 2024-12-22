@@ -50,6 +50,8 @@ def parse_multi_choice_response(response, all_choices, index2ans):
     response = response.strip()
     for char in [",", ".", "!", "?", ";", ":", "'"]:
         response = response.strip(char)
+    if len(response) == 0:
+        return random.choice(all_choices)
     if response[0] in all_choices:
         return response[0]
     response = " " + response + " "  # add space to avoid partial match

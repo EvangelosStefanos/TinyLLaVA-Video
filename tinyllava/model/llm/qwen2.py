@@ -6,6 +6,6 @@ from . import register_llm
 def return_qwen2class():
     def tokenizer_and_post_load(tokenizer):
         tokenizer.unk_token = tokenizer.pad_token
-#        tokenizer.pad_token = tokenizer.unk_token
+        #tokenizer.pad_token = tokenizer.unk_token
         return tokenizer
     return Qwen2ForCausalLM, (AutoTokenizer, tokenizer_and_post_load)
