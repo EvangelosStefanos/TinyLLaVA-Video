@@ -1,7 +1,7 @@
 VIDEO_DATA_PATH=/data/vlm/zxj/data/mm_data/merge_data/allplus_caption.json #pretrain annotation file path
 FINETUNE_VIDEO_DATA_PATH=/data/vlm/zxj/data/mm_data/merge_data/all_openqa.json #finetune annotation file path
 VIDEO_PATH=/data/vlm/zxj/data/mm_data/merge_data #pretrain image dir
-FINETUNE_VIDEO_PATH=//data/vlm/zxj/data/mm_data/merge_data #finetune image dir
+FINETUNE_VIDEO_PATH=/data/vlm/zxj/data/mm_data/merge_data #finetune image dir
 
 LLM_VERSION=/data/vlm/zxj/checkpoints/gemma-2b-it # llm path
 VT_VERSION=/data/vlm/zxj/checkpoints/siglip-so400m-patch14-384 #vision tower path in huggingface

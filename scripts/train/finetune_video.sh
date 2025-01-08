@@ -23,7 +23,7 @@ LLM_VARIANT="${LLM_VERSION##*/}"
 
 
 deepspeed --include localhost:0,1,2,3 --master_port 29501 tinyllava/train/train.py \
-    --deepspeed ./scripts/zero2.json \
+    --deepspeed ./scripts/zero3.json \
     --video_data_path  $VIDEO_DATA_PATH \
     --video_folder $VIDEO_PATH \
     --is_multimodal True \
