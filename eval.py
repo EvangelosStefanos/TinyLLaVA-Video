@@ -1,9 +1,9 @@
 from tinyllava.eval.run_tiny_llava import eval_model
 
-model_path = "/data/vlm/zxj/result/llava_video_factory-11.22/tiny-llava-phi-2-siglip-so400m-patch14-384-base-finetune"
-prompt = "Describe the scene at the beginning of the video."
-video_file = "/data/vlm/zxj/others/demo3.mp4"
-conv_mode = "phi" # or llama, gemma, etc
+model_path = "/data/vlm/zxj/result/llava_video_factory-12.16/tiny-llava-Qwen2.5-3B-siglip-so400m-patch14-384-base-finetune"
+prompt = "Describe the beginning of the video."
+video_file = "/data/vlm/zxj/others/monkey.mp4"
+conv_mode = "qwen2_base" # or llama, gemma, etc
 
 args = type('Args', (), {
     "model_path": model_path,
