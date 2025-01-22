@@ -76,15 +76,15 @@ dataset
 
 You can refer to [TinyLLaVA_Factory](https://github.com/TinyLLaVA/TinyLLaVA_Factory) to modify components such as "llm," "vision_tower," and "train_recipe."
 
-Here's an example for training a LMM using Phi-2.
+Here's an example for training a LMM using Qwen2.5.
 
-- Replace data paths with yours in `scripts/train/train_phi.sh`
-- Replace `output_dir` with yours in `scripts/train/pretrain.sh`
-- Replace `pretrained_model_path` and `output_dir` with yours in `scripts/train/finetune.sh`
-- Adjust your GPU ids (localhost) and `per_device_train_batch_size` in `scripts/train/pretrain.sh` and `scripts/train/finetune.sh`
+- Replace data paths with yours in `scripts/train/qwen2/train_qwen2_base_video.sh`
+- Replace `output_dir` with yours in `scripts/train/qwen2/pretrain_qwen2_video.sh`
+- Replace `pretrained_model_path` and `output_dir` with yours in `scripts/train/qwen2/finetune_qwen2_video.sh`
+- Adjust your GPU ids (localhost) and `per_device_train_batch_size` in `scripts/train/qwen2/pretrain_qwen2_video.sh` and `scripts/train/qwen2/finetune_qwen2_video.sh`
 
 ```bash
-bash scripts/train/train_phi.sh
+bash scripts/train/qwen2/train_qwen2_base_video.sh
 ```
 
 Important hyperparameters used in pretraining and finetuning are provided below.
@@ -92,7 +92,7 @@ Important hyperparameters used in pretraining and finetuning are provided below.
 | Training Stage | Global Batch Size | Learning rate | conv_version |
 | -------------- | :---------------: | :-----------: | :----------: |
 | Pretraining    | 128               | 1e-4          | pretrain     |
-| Finetuning     | 64                | 2e-5          | phi          |
+| Finetuning     | 64                | 2e-5          | qwen2_base   |
 
 **Tips:** 
 
