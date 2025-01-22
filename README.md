@@ -9,6 +9,7 @@
 
 ## 📌 About
 This is a framework of Small-scale Large Multimodal Models for video understanding based on [TinyLLaVA_Factory](https://github.com/TinyLLaVA/TinyLLaVA_Factory).
+<img src="assets/architecture.jpg" width="80%"/>
 
 ## Installation and Requirements
 
