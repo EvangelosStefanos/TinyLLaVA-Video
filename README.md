@@ -12,8 +12,8 @@ This is a framework of Small-scale Large Multimodal Models for video understandi
 
 ![architecture](./assets/architecture.jpg)
 
-The model with parameters not exceeding 4B that processes video sequences in a simple manner, without the need for complex architectures, supporting both fps sampling and uniform frame sampling. We validate
-the effectiveness of this framework through experiments, the best model achieving performance comparable to certain existing 7B models on multiple video understanding benchmarks.
+- The model with parameters not exceeding 4B that processes video sequences in a simple manner, without the need for complex architectures, supporting both fps sampling and uniform frame sampling.
+- We validate the effectiveness of this framework through experiments, the best model achieving performance comparable to certain existing 7B models on multiple video understanding benchmarks.
 
 ## Installation and Requirements
 
