@@ -151,14 +151,16 @@ We currently provide evaluations on 4 benchmarks, including [Video-MME](https://
 - [TinyLLaVA-Video-Phi2-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Phi2-16-512)
 - [TinyLLaVA-Video-Qwen2.5-3B-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Qwen2.5-3B-16-512)
 
-Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens to represent the video sequence.
+Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens(queries) to represent the video sequence.
 
 ### Model Performance
 
-|            VT (HF Path)           |  LLM (HF Path)  | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  | 
-| --------------------------------- | --------------- | ------------ | :-------: | :-----: | :------------: | :----: | 
-| google/siglip-so400m-patch14-384  | Qwen/Qwen2.5-3B |    16/512    |    44.7   |   42.5  |      37.6      |  48.1  | 
-| google/siglip-so400m-patch14-384  | microsoft/phi-2 |    16/512    |    42.7   |   42.0  |      42.2      |  46.5  | 
+|            VT (HF Path)           |   LLM (HF Path)   | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  | 
+| --------------------------------- | ----------------- | ------------ | :-------: | :-----: | :------------: | :----: | 
+| google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |    16/512    |    44.7   |   42.5  |      37.6      |  48.1  |
+| google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |   1fps/1024  |    44.6   |   40.4  |      35.3      |  45.9  |
+| google/siglip-so400m-patch14-384  |  microsoft/phi-2  |    16/512    |    42.7   |   42.0  |      42.2      |  46.5  | 
+| google/siglip-so400m-patch14-384  | Qwen/Qwen2.5-1.5B |    16/512    |    34.4   |   39.0  |      29.5      |  40.5  | 
 
 ### Quick Inference Scripts
 
