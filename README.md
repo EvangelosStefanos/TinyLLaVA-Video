@@ -143,7 +143,8 @@ We currently provide evaluations on 4 benchmarks, including [Video-MME](https://
 
 ### Trained Models
 
-our trained models will coming soon.
+- [TinyLLaVA-Video-Phi2-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Phi2-16-512)
+- [TinyLLaVA-Video-Qwen2.5-3B-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Qwen2.5-3B-16-512)
 
 ### Model Performance
 
