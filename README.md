@@ -56,11 +56,11 @@ Valley](https://github.com/RupertLuo/Valley).
 
 #### Pretrain Data
 
-We use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K): ``0_30_s_academic_v0_1``, ``30_60_s_academic_v0_1``, ``0_30_s_youtube_v0_1``, and ``30_60_s_youtube_v0_1``, supplemented with the filtered [Video-LLaVA](https://huggingface.co/datasets/LanguageBind/Video-LLaVA). The organized pretraining annotations can be downloaded from here.
+We use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K): ``0_30_s_academic_v0_1``, ``30_60_s_academic_v0_1``, ``0_30_s_youtube_v0_1``, and ``30_60_s_youtube_v0_1``, supplemented with the filtered [Video-LLaVA](https://huggingface.co/datasets/LanguageBind/Video-LLaVA). The organized pretraining annotations can be downloaded from [here](https://huggingface.co/Zhang199/TinyLLaVA-Video-v1-training-data).
 
 #### Finetune Data
 
-We use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K): ``0_30_s_academic_v0_1``, ``30_60_s_academic_v0_1``, ``0_30_s_youtube_v0_1``, and ``30_60_s_youtube_v0_1``. The organized finetune annotations can be downloaded from here.
+We use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-lab/LLaVA-Video-178K): ``0_30_s_academic_v0_1``, ``30_60_s_academic_v0_1``, ``0_30_s_youtube_v0_1``, and ``30_60_s_youtube_v0_1``. The organized finetune annotations can be downloaded from [here](https://huggingface.co/Zhang199/TinyLLaVA-Video-v1-training-data).
 
 #### Organize Data
 
