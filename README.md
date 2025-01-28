@@ -2,7 +2,7 @@
 
 [![Paper](https://img.shields.io/badge/Paper-Arxiv-blue)](https://arxiv.org/abs/2501.15513)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green)]()
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/ZhangXJ199/TinyLLaVA-Video/tree/main)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-black)](https://github.com/ZhangXJ199/TinyLLaVA-Video/tree/main)
 
 ## 🎉 News
 - [2024-12] 🎉 Our arXiv paper has been published. [arXiv Paper](https://arxiv.org/abs/2501.15513)
