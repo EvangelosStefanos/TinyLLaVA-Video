@@ -5,7 +5,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black)](https://github.com/ZhangXJ199/TinyLLaVA-Video/tree/main)
 
 ## 🎉 News
-- [2024-12] 🎉 Our arXiv paper has been published. [arXiv Paper](https://arxiv.org/abs/2501.15513)
+- [2025-01] 🎉 Our arXiv paper has been published. [arXiv Paper](https://arxiv.org/abs/2501.15513)
 - [2024-12] 🔊 Our [TinyLLaVA-Video-v1](https://github.com/ZhangXJ199/TinyLLaVA-Video/tree/main) repository has been established.
 
 ## 📌 About
