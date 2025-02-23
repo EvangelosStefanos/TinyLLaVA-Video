@@ -171,6 +171,27 @@ Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens(quer
    CUDA_VISIBLE_DEVICES=0 python eval.py
    ```
 
+## &#x270F; Citation
+
+If you find our paper and code useful in your research, please consider giving a star :star: and citation :pencil:.
+
+```BibTeX
+@article{zhang2025tinyllava,
+  title={TinyLLaVA-Video: A Simple Framework of Small-scale Large Multimodal Models for Video Understanding},
+  author={Zhang, Xingjian and Weng, Xi and Yue, Yihao and Fan, Zhaoxin and Wu, Wenjun and Huang, Lei},
+  journal={arXiv preprint arXiv:2501.15513},
+  year={2025}
+}
+```
+```BibTeX
+@article{jia2024tinyllava,
+  title={TinyLLaVA Factory: A Modularized Codebase for Small-scale Large Multimodal Models},
+  author={Jia, Junlong and Hu, Ying and Weng, Xi and Shi, Yiming and Li, Miao and Zhang, Xingjian and Zhou, Baichuan and Liu, Ziyu and Luo, Jie and Huang, Lei and Wu, Ji},
+  journal={arXiv preprint arXiv:2405.11788},
+  year={2024}
+}
+```
+
 ## ❤️ Community efforts
 * This repository is based on [TinyLLaVA_Factory](https://github.com/TinyLLaVA/TinyLLaVA_Factory) project.
 * Our codebase is built upon the [LLaVA](https://github.com/haotian-liu/LLaVA) project. Great work!
