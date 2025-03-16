@@ -147,14 +147,14 @@ We currently provide evaluations on 4 benchmarks, including [Video-MME](https://
 
 ## Model Zoo
 
-### Trained Models
+### Trained Models (Naive Video-Level Resample)
 
 - [TinyLLaVA-Video-Phi2-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Phi2-16-512)
 - [TinyLLaVA-Video-Qwen2.5-3B-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Qwen2.5-3B-16-512)
 
 Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens(queries) to represent the video sequence.
 
-### Model Performance
+### Model Performance (Naive Video-Level Resample)
 
 |            VT (HF Path)           |   LLM (HF Path)   | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  | 
 | --------------------------------- | ----------------- | ------------ | :-------: | :-----: | :------------: | :----: | 
