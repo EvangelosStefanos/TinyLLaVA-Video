@@ -161,7 +161,6 @@ Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens(quer
 | google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |    16/512    |    44.7   |   42.5  |      37.6      |  48.1  |
 | google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |   1fps/1024  |    44.6   |   40.4  |      35.3      |  45.9  |
 | google/siglip-so400m-patch14-384  |  microsoft/phi-2  |    16/512    |    42.7   |   42.0  |      42.2      |  46.5  | 
-| google/siglip-so400m-patch14-384  | Qwen/Qwen2.5-1.5B |    16/512    |    34.4   |   39.0  |      29.5      |  40.5  | 
 
 ### Quick Inference Scripts
 
