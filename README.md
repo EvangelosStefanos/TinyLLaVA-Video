@@ -147,15 +147,15 @@ We currently provide evaluations on 4 benchmarks, including [Video-MME](https://
 
 ## Model Zoo
 
-### Trained Models (Naive Video-Level Resample)
-
+### Trained Models 
+#### Naive Video-Level Resample
 - [TinyLLaVA-Video-Phi2-Naive-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Phi2-Naive-16-512)
 - [TinyLLaVA-Video-Qwen2.5-3B-Naive-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Qwen2.5-3B-Naive-16-512)
 
 Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens(queries) to represent the video sequence.
 
-### Model Performance (Naive Video-Level Resample)
-
+### Model Performance 
+#### Naive Video-Level Resample
 |            VT (HF Path)           |   LLM (HF Path)   | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  | 
 | --------------------------------- | ----------------- | ------------ | :-------: | :-----: | :------------: | :----: | 
 | google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |    16/512    |    44.7   |   42.5  |      37.6      |  48.1  |
