@@ -11,10 +11,11 @@ import math
 class PerceiverResampler(nn.Module):
     def __init__(self, config):
         super().__init__()
+        num_q = int(config.num_queries / config.group)
         dim = config.hidden_size #2560
         depth = config.num_resampler_layers #3
-        num_latents = config.num_queries #512
-        self.latents = nn.Parameter(torch.randn(num_latents, dim))
+        self.num_latents = config.group  
+        self.latents = nn.Parameter(torch.randn(num_q, dim))
         self.layers = nn.ModuleList([])
         self.linear = nn.Linear(config.vision_hidden_size, config.hidden_size)
         self.position_encoding = PositionalEncoding(dim)
@@ -30,25 +31,46 @@ class PerceiverResampler(nn.Module):
             )
 
         self.norm = nn.LayerNorm(dim)
+    def split_tensor(self, tensor, num):
+        bs, seq_len, dim = tensor.shape
+        avg_chunk_size = seq_len // num
+        remainder = seq_len % num
+
+        split_sizes = [avg_chunk_size + 1] * remainder + [avg_chunk_size] * (num - remainder)
+
+        return torch.split(tensor, split_sizes, dim=1)
 
     def forward(self, x):
 
-        b, v = x.shape[:2]
         x = self.linear(x) #torch.Size([bs, 728*16, 2560])
-        
+
+        #b, v = x.shape[:2]
+        #position_encoding = self.position_encoding(v).to(device='cuda', dtype=x.dtype)
+        #x = x + position_encoding
+
+        frame_splits = self.split_tensor(x, self.num_latents)
+
+        frames = []
+        for frame in frame_splits:
+            b, v = frame.shape[:2]
+            latents = repeat(self.latents, "n d -> b T n d", b=b, T=1)
+            frame = frame.unsqueeze(1)
+            for attn, ff in self.layers:
+                latents = attn(frame, latents) + latents
+                latents = ff(latents) + latents
+            out = self.norm(latents).squeeze(1)
+            frames.append(out)
+
+        frames = torch.cat(frames, dim=1) #torch.Size([bs, 512, 2560])
+        #print("frames:",frames.shape)
+        b, v = frames.shape[:2]
         position_encoding = self.position_encoding(v).to(device='cuda', dtype=x.dtype) # [1, seq_len, d_model]
-        x = x + position_encoding
+        frames = frames + position_encoding
 
-        latents = repeat(self.latents, "n d -> b T n d", b=b, T=1) #torch.Size([bs, 1, 512, 2560])
-
-        x = x.unsqueeze(1)
-        for attn, ff in self.layers:
-            latents = attn(x, latents) + latents
-            latents = ff(latents) + latents
-        return self.norm(latents).squeeze(1)
+        return frames
 
     
-@register_connector('resamplerwithpe')    
+@register_connector('groupresampler')    
 class ResamplerConnectorWithPE(Connector):
     def __init__(self, config):
         super().__init__()

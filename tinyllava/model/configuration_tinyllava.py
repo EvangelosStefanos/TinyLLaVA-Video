@@ -29,6 +29,7 @@ class TinyLlavaConfig(PretrainedConfig):
         image_aspect_ratio = 'square',
         resampler_hidden_size = None,
         num_queries = None,
+        group = None,
         num_resampler_layers = None,
         use_cache = False,
         cache_dir = None,
@@ -62,6 +63,7 @@ class TinyLlavaConfig(PretrainedConfig):
         self.image_aspect_ratio = image_aspect_ratio
         self.resampler_hidden_size = resampler_hidden_size
         self.num_queries = num_queries
+        self.group = group
         self.num_resampler_layers = num_resampler_layers
         self.use_cache = use_cache
         self.cache_dir = cache_dir
@@ -82,6 +84,7 @@ class TinyLlavaConfig(PretrainedConfig):
         self.image_aspect_ratio = getattr(config, 'image_aspect_ratio',  "pad")
         self.resampler_hidden_size = getattr(config, 'resampler_hidden_size',  None)
         self.num_queries = getattr(config, 'num_queries',  None)
+        self.group = getattr(config, 'group',  None)
         self.num_resampler_layers = getattr(config, 'num_resampler_layers',  None)
         
         self.cache_dir = getattr(config, 'cache_dir', None)
