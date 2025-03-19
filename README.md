@@ -148,6 +148,12 @@ We currently provide evaluations on 4 benchmarks, including [Video-MME](https://
 ## Model Zoo
 
 ### Trained Models 
+
+#### Video-Level Group Resample
+
+- [TinyLLaVA-Video-Qwen2.5-3B-Group-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Qwen2.5-3B-Group-16-512)
+- [TinyLLaVA-Video-Qwen2.5-3B-Group-1fps-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Qwen2.5-3B-Group-1fps-512)
+
 #### Naive Video-Level Resample
 - [TinyLLaVA-Video-Phi2-Naive-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Phi2-Naive-16-512)
 - [TinyLLaVA-Video-Qwen2.5-3B-Naive-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Qwen2.5-3B-Naive-16-512)
@@ -155,6 +161,13 @@ We currently provide evaluations on 4 benchmarks, including [Video-MME](https://
 Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens(queries) to represent the video sequence.
 
 ### Model Performance 
+#### Video-Level Group Resample
+
+|            VT (HF Path)           |   LLM (HF Path)   | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  | 
+| --------------------------------- | ----------------- | ------------ | :-------: | :-----: | :------------: | :----: | 
+| google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |    16/512    |    47.0   |   45.5  |      42.4      |  52.5  |
+| google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |   1fps/512   |    47.7   |   47.0  |      42.0      |  52.6  |
+
 #### Naive Video-Level Resample
 |            VT (HF Path)           |   LLM (HF Path)   | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  | 
 | --------------------------------- | ----------------- | ------------ | :-------: | :-----: | :------------: | :----: | 
