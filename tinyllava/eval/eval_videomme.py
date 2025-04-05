@@ -16,6 +16,7 @@ from tinyllava.model import *
 from PIL import Image
 import math
 import av
+import bisect
 
 
 def split_list(lst, n):
@@ -86,7 +87,7 @@ def parse_multi_choice_response(response, all_choices, index2ans):
 
     return pred_index
 
-def get_video_frames(video_path, num_frames=16, max_frames=16):
+def get_video_frames_naive(video_path, num_frames=16, max_frames=16):
     container = av.open(video_path)
     total_frames = container.streams.video[0].frames
     duration = container.streams.video[0].duration
@@ -103,6 +104,72 @@ def get_video_frames(video_path, num_frames=16, max_frames=16):
         if len(frames) >= num_frames_to_extract:
             break
     return frames
+
+
+def get_video_frames(video_path, num_frames=16, max_frames=16):
+    # Open the video container
+    container = av.open(video_path)
+    video_stream = container.streams.video[0]
+
+    # Get the metadata of the video
+    if video_stream.average_rate == video_stream.base_rate:
+        frame_rate = float(video_stream.base_rate)
+    else:
+        # Variable frame rate mode -- hard to calculate PTSs
+        # Fallback to naive method
+        return get_video_frames_naive(video_path, num_frames, max_frames)
+    time_base = video_stream.time_base
+    total_frames = video_stream.frames
+
+    # Calculate the number of frames to extract
+    if num_frames > 0:
+        num_frames_to_extract = num_frames
+    else:
+        duration = video_stream.duration * time_base
+        num_frames_to_extract = min(max_frames, max(1, int(duration)))
+
+    frame_indices = np.linspace(0, total_frames - 1, num_frames_to_extract, dtype=int)
+    frame_indices = np.unique(frame_indices)
+
+    # Calculate timestamps (PTS) of target frames, ensuring reverse order and no duplicates
+    remaining_PTSs = (frame_indices / time_base / frame_rate).astype(int).tolist()
+
+    frame_dict = {}
+
+    while remaining_PTSs:
+        # Jump to the nearest keyframe (I-frame) before the target frame
+        container.seek(
+            remaining_PTSs[-1],
+            stream=video_stream,
+            backward=True,
+            any_frame=False
+        )
+        init = True
+
+        # Decode and find the target frame,
+        # considering the case where the keyframe is followed by multiple target frames
+        for frame in container.decode(video=0):
+            frame_PTS = frame.pts
+            if init:
+                index = bisect.bisect_left(remaining_PTSs, frame_PTS)
+                this_PTSs = remaining_PTSs[index:]
+                if not this_PTSs:
+                    # In some cases (maybe some variable frame rate videos),
+                    # the first keyframe is not indexed as frame 0.
+                    index = 0
+                    this_PTSs = remaining_PTSs[index:]
+                remaining_PTSs = remaining_PTSs[:index]
+                init = False
+
+            if frame_PTS >= this_PTSs[0]:
+                frame_dict[frame_PTS] = frame.to_image()
+                this_PTSs.pop(0)
+
+                if not this_PTSs:
+                    break
+
+    sorted_PTS = sorted(frame_dict.keys())
+    return [frame_dict[pts] for pts in sorted_PTS]
 
 def select_from_options(options):
     all_choices = [option.split('.')[0] for option in options]
