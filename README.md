@@ -107,7 +107,7 @@ Global Batch Size = num of GPUs * `per_device_train_batch_size` * `gradient_accu
 
 ### 3. Evaluation
 
-We currently provide evaluations on 4 benchmarks, including [Video-MME](https://video-mme.github.io/home_page.html#leaderboard), [MVBench](https://huggingface.co/datasets/OpenGVLab/MVBench), [LongVideoBench](https://longvideobench.github.io/), [MLVU](https://github.com/JUNJIE99/MLVU).
+We currently provide evaluations on 5 benchmarks, including [Video-MME](https://video-mme.github.io/home_page.html#leaderboard), [MVBench](https://huggingface.co/datasets/OpenGVLab/MVBench), [LongVideoBench](https://longvideobench.github.io/), [MLVU](https://github.com/JUNJIE99/MLVU), [MMVU](https://github.com/yale-nlp/MMVU).
 
 #### Video-MME
 
