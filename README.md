@@ -172,7 +172,7 @@ Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens(quer
 ### Model Performance 
 #### Video-Level Group Resample
 
-|            VT (HF Path)           |   LLM (HF Path)   | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  |  MLVU  | 
+|            VT (HF Path)           |   LLM (HF Path)   | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  |  MMVU  | 
 | --------------------------------- | ----------------- | ------------ | :-------: | :-----: | :------------: | :----: | :----: | 
 | google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |    16/512    |    47.0   |   45.5  |      42.4      |  52.5  |  34.3  |
 | google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |   1fps/512   |    47.7   |   47.0  |      42.0      |  52.6  |  36.0  |
