@@ -145,6 +145,15 @@ We currently provide evaluations on 4 benchmarks, including [Video-MME](https://
    CUDA_VISIBLE_DEVICES=0 bash scripts/eval/mlvu.sh
    ```
 
+#### MMVU
+
+1. Download [MMVU](https://huggingface.co/datasets/yale-nlp/MMVU) and put it under ``path/to/your/dataset/eval/MMVU``.
+2. Please change ``MODEL_PATH``, ``MODEL_NAME``, ``EVAL_DIR`` and ``conv-mode`` in ``scripts/eval/mmvu.sh``.
+3. Please use the following command for single-gpu inference.
+   ```bash
+   CUDA_VISIBLE_DEVICES=0 bash scripts/eval/mmvu.sh
+   ```
+
 ## Model Zoo
 
 ### Trained Models 
@@ -163,10 +172,10 @@ Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens(quer
 ### Model Performance 
 #### Video-Level Group Resample
 
-|            VT (HF Path)           |   LLM (HF Path)   | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  | 
-| --------------------------------- | ----------------- | ------------ | :-------: | :-----: | :------------: | :----: | 
-| google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |    16/512    |    47.0   |   45.5  |      42.4      |  52.5  |
-| google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |   1fps/512   |    47.7   |   47.0  |      42.0      |  52.6  |
+|            VT (HF Path)           |   LLM (HF Path)   | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  |  MLVU  | 
+| --------------------------------- | ----------------- | ------------ | :-------: | :-----: | :------------: | :----: | :----: | 
+| google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |    16/512    |    47.0   |   45.5  |      42.4      |  52.5  |  34.3  |
+| google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |   1fps/512   |    47.7   |   47.0  |      42.0      |  52.6  |  36.0  |
 
 #### Naive Video-Level Resample
 |            VT (HF Path)           |   LLM (HF Path)   | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  | 
