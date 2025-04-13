@@ -69,12 +69,11 @@ Organize the files and annotation files as follows in ``path/to/your/dataset``:
 
 ```Shell
 dataset
-├── academic_source
-├── liwei_youtube_videos
-├── valley
-├── text_files
-│   ├── cleaned_video_caption.json
-│   ├── cleaned_video_openqa.json
+dataset
+├── NextQA
+│   ├── NExTVideo
+├── nextqa_0-30s.jsonl
+├── nextqa-coldstart-16.json
 ```
    
 
