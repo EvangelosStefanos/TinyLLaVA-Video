@@ -65,7 +65,7 @@ We use four subsets of [LLaVA-Video-178K](https://huggingface.co/datasets/lmms-l
 
 #### Organize Data
 
-Organize the image files and annotation files as follows in ``path/to/your/dataset``:
+Organize the files and annotation files as follows in ``path/to/your/dataset``:
 
 ```Shell
 dataset
