@@ -178,10 +178,10 @@ Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens(quer
 | google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |   1fps/512   |    47.7   |   47.0  |      42.0      |  52.6  |  36.0  |
 
 #### Naive Video-Level Resample
-|            VT (HF Path)           |   LLM (HF Path)   | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  | 
-| --------------------------------- | ----------------- | ------------ | :-------: | :-----: | :------------: | :----: | 
-| google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |    16/512    |    44.7   |   42.5  |      37.6      |  48.1  |
-| google/siglip-so400m-patch14-384  |  microsoft/phi-2  |    16/512    |    42.7   |   42.0  |      42.2      |  46.5  | 
+|            VT (HF Path)           |   LLM (HF Path)   | #Frame/Query | Video-MME | MVBench | LongVideoBench |  MLVU  |  MMVU  | 
+| --------------------------------- | ----------------- | ------------ | :-------: | :-----: | :------------: | :----: | :----: |  
+| google/siglip-so400m-patch14-384  |  Qwen/Qwen2.5-3B  |    16/512    |    44.7   |   42.5  |      37.6      |  48.1  |  34.1  |
+| google/siglip-so400m-patch14-384  |  microsoft/phi-2  |    16/512    |    42.7   |   42.0  |      42.2      |  46.5  |  31.6  | 
 
 ### Quick Inference Scripts
 
