@@ -1,8 +1,8 @@
 <h2 align="center">TinyLLaVA-Video</a><h5 align="center">
 
-[![Paper](https://img.shields.io/badge/Paper-Arxiv-blue)](https://arxiv.org/abs/2501.15513)
+[![Paper](https://img.shields.io/badge/Paper-Arxiv-red)](https://arxiv.org/abs/2501.15513)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green)]()
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-black)](https://github.com/ZhangXJ199/TinyLLaVA-Video/tree/main)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/ZhangXJ199/TinyLLaVA-Video/tree/main)
 
 ## 🎉 News
 - [2025-04] 🔊 Our new work [TinyLLaVA-Video-R1](https://github.com/ZhangXJ199/TinyLLaVA-Video-R1) for video reasoning is released.
