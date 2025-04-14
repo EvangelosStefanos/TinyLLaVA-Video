@@ -5,7 +5,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black)](https://github.com/ZhangXJ199/TinyLLaVA-Video/tree/main)
 
 ## 🎉 News
-- [2025.04] 🔊 Our new work [TinyLLaVA-Video-R1](https://github.com/ZhangXJ199/TinyLLaVA-Video-R1) for video reasoning is released.
+- [2025-04] 🔊 Our new work [TinyLLaVA-Video-R1](https://github.com/ZhangXJ199/TinyLLaVA-Video-R1) for video reasoning is released.
 - [2025-01] 🎉 Our arXiv paper [TinyLLaVA-Video: A Simple Framework of Small-scale Large Multimodal Models for Video Understanding](https://arxiv.org/abs/2501.15513) is released!
 - [2024-12] 🔊 Our [TinyLLaVA-Video](https://github.com/ZhangXJ199/TinyLLaVA-Video/tree/main) repository has been established.
 
