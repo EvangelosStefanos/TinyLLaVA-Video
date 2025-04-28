@@ -171,6 +171,9 @@ We currently provide evaluations on 5 benchmarks, including [Video-MME](https://
 
 Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens(queries) to represent the video sequence.
 
+"16-512" refers to uniformly sampling 16 frames and representing the entire video with 512 tokens. In evaluation script, you can set both num_frame and max_frame to 16.
+"1fps-512" refers to sampling one frame per second. In this case, set num_frame to -1 in the script. Bur since many evaluation videos are relatively long, it is recommended to set max_frame to 64 or 128.
+
 ### Model Performance 
 #### Video-Level Group Resample
 
