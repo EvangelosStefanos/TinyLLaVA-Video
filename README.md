@@ -169,7 +169,7 @@ We currently provide evaluations on 5 benchmarks, including [Video-MME](https://
 - [TinyLLaVA-Video-Phi2-Naive-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Phi2-Naive-16-512)
 - [TinyLLaVA-Video-Qwen2.5-3B-Naive-16-512](https://huggingface.co/Zhang199/TinyLLaVA-Video-Qwen2.5-3B-Naive-16-512)
 
-Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens(queries) to represent the video sequence. In the script, you can set ``num_frame, max_frame = 16`` for "16-512", and set ``num_frame = -1`` and ``max_frame = 64 or 128`` for "1fps-512".
+Here, 16 represents sampling 16 frames, and 512 represents using 512 tokens(queries) to represent the video sequence. In the script, you can set ``num_frame, max_frame = 16`` for "16-512", and set ``num_frame = -1, max_frame = 64 or 128`` for "1fps-512".
 
 ### Model Performance 
 #### Video-Level Group Resample
