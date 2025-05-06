@@ -22,6 +22,7 @@ class ModelArguments:
     mm_vision_select_feature: Optional[str] = field(default="patch")
     resampler_hidden_size: Optional[int] = field(default=768)
     num_queries: Optional[int] = field(default=512)
+    group: Optional[int] = field(default=16)
     num_resampler_layers: Optional[int] = field(default=3)
     model_max_length: int = field(
         default=512,
