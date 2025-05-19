@@ -14,7 +14,7 @@
 This is a framework of Small-scale Large Multimodal Models for video understanding based on [TinyLLaVA_Factory](https://github.com/TinyLLaVA/TinyLLaVA_Factory).
 
 <p align="center">
-    <img src="./assets/architecture.jpg" width="50%">
+    <img src="./assets/architecture.jpg" width="70%">
 </p>
 
 - The model with parameters not exceeding 4B that processes video sequences in a simple manner, without the need for complex architectures, supporting both fps sampling and uniform frame sampling.
