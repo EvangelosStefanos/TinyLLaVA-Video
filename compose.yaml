@@ -1,0 +1,19 @@
+# Docker Compose version v2.29.7
+services:
+  tinyllava-video:
+    image: tinyllava-video
+    build: .
+    volumes:
+      - ./data:/app/data:ro
+      - ./checkpoints:/app/checkpoints:ro
+    # - output:/app/output
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: [ '2', '3' ]
+              capabilities: [ gpu ]
+# volumes:
+#   output:
