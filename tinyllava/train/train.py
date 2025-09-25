@@ -5,11 +5,13 @@ import tokenizers
 import transformers
 
 
-from tinyllava.train.tinyllava_trainer import LLaVATrainer
+from tinyllava.train.tinyllava_trainer import LLaVATrainer, EMACallback
 from tinyllava.training_recipe import TrainingRecipeFactory
 from tinyllava.utils import *
 from tinyllava.model import *
 from tinyllava.data.dataset import make_supervised_data_module
+
+import tinyllava.vjepa.config as cfg
 
 IS_TOKENIZER_GREATER_THAN_0_14 = version.parse(tokenizers.__version__) >= version.parse('0.14')
 
@@ -38,6 +40,7 @@ def _load_vision_settings(model_arguments):
     vision_args['model_name_or_path'] = model_arguments.vision_tower.split(':')[-1]
     if model_arguments.vision_tower2 != '':
         vision_args['model_name_or_path2'] = model_arguments.vision_tower2.split(':')[-1]
+    # TODO: maybe add vjepa configuration here?
     return vision_args
 
 def _load_connector_settings(model_arguments):
@@ -85,6 +88,7 @@ def train():
     trainer = LLaVATrainer(model=model, #does not require model.to(device), huggingface/deepspeed does it for you?
                             tokenizer=tokenizer,
                             args=training_arguments,
+                            callbacks=[EMACallback(cfg)],
                             **video_data_module)
     trainer.train()
     

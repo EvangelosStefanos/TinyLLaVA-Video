@@ -139,7 +139,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
                 image_sizes
             )
         
-        return self.language_model.forward(
+        output = self.language_model.forward(
             input_ids=input_ids,
             attention_mask=attention_mask,
             position_ids=position_ids,
@@ -151,7 +151,13 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict
         )
-        
+        output["loss"] = self.vision_tower.get_loss()
+        return output
+    
+    def ema_update(self, momentum_scheduler):
+        if not hasattr(self.vision_tower, 'target_encoder'):
+            return
+        return self.vision_tower.ema_update(momentum_scheduler)
     
     @torch.no_grad()
     def generate(
@@ -198,28 +204,21 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         )
     
     def encode_videos(self, videos):
+        # videos: torch.Size([bs, frame, 3, 384, 384])
+        # return: tensor torch.Size([bs, 1024, 2560])
         kwargs = {}
         kwargs['vision_feature_layer'] = self.config.vision_feature_layer
         kwargs['vision_feature_select_strategy'] = self.config.vision_feature_select_strategy
-        """
-        videos = videos.to(device=self.device, dtype=self.dtype) #torch.Size([bs, 16, 3, 384, 384])
-        videos = videos.permute(1, 0, 2, 3, 4)
-        image_features = []
-        for video in videos:
-            image_feature = self.vision_tower(video, **kwargs) #torch.Size([bs, 728, 1152])
-            image_features.append(image_feature)
-        image_features = torch.cat(image_features, dim=1) #torch.Size([bs, 728*16, 1152])
-        image_features = self.connector(image_features) #torch.Size([bs, 512, 2560])
-        """
         image_features = []
         for video in videos:
             video = video.to(device=self.device, dtype=self.dtype) #torch.Size([frame, 3, 384, 384])
-            image_feature = self.vision_tower(video, **kwargs) #torch.Size([frame, 728, 1152])
-            last_dim = image_feature.shape[-1]
-            image_feature = image_feature.reshape(1, -1, last_dim) #torch.Size([1, frame*728, 1152])
-            image_feature = self.connector(image_feature) #torch.Size([1, 512, 2560])
+            image_feature = self.vision_tower(video.unsqueeze(0), **kwargs) # [1, num_masked_tokens, D]
+            # last_dim = image_feature.shape[-1]
+            # image_feature = image_feature.reshape(1, -1, last_dim) #torch.Size([1, frame*728, 1152])
+            # TODO: try to remove the connector by aligning image feature dim with LLM dim?
+            image_feature = self.connector(image_feature) # [1, num_masked_tokens, D])
             image_features.append(image_feature)
-        image_features = torch.cat(image_features, dim=0) #torch.Size([bs, 512, 2560])
+        image_features = torch.cat(image_features, dim=0) # [B, num_masked_tokens, D]
         return image_features
     
     
