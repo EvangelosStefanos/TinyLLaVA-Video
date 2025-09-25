@@ -14,7 +14,7 @@ from tinyllava.data import *
 from tinyllava.model import *
 
 data_list = {
-    "Fine-grained Pose": ("fine_grained_pose.json", "/nturgbd/", "video_avi", False),
+    # "Fine-grained Pose": ("fine_grained_pose.json", "/nturgbd/", "video_avi", False),
     "Episodic Reasoning": ("episodic_reasoning.json", "/tvqa/frames_fps3_hq/", "frame", True),  # has start & end, read frame
     "Action Sequence": ("action_sequence.json", "/star/Charades_v1_480/", "video", True), # has start & end
     "Action Prediction": ("action_prediction.json", "/star/Charades_v1_480/", "video", True), # has start & end

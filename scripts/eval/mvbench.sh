@@ -1,8 +1,8 @@
 #!/bin/bash
 
-MODEL_PATH="/data/vlm/zxj/result/llava_video_factory-12.16/tiny-llava-Qwen2.5-3B-siglip-so400m-patch14-384-base-finetune"
-MODEL_NAME="tiny-llava-Qwen2.5-3B-siglip-so400m-patch14-384-base-finetune"
-EVAL_DIR="/data/vlm/zxj/data/MVBench"
+MODEL_PATH="Zhang199/TinyLLaVA-Video-Qwen2.5-3B-Group-16-512"
+MODEL_NAME="TinyLLaVA-Video-Qwen2.5-3B-Group-16-512"
+EVAL_DIR="/app/data/dataset/eval/MVBench"
 
 # num_frame=-1 means 1fps
 python -m tinyllava.eval.eval_mvbench \
