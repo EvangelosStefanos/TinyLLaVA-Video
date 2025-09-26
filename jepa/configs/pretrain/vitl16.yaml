@@ -4,9 +4,6 @@ tasks_per_node: 1
 data:
   dataset_type: VideoDataset
   datasets:
-    # - /your_path_to_kinetics710_csv_file_index.csv
-    # - /your_path_to_ssv2_csv_file_index.csv
-    # - /your_path_to_howto100m_csv_file_index.csv
     - /app/data/kinetics400/train.csv
     - /app/data/kinetics400/val.csv
   decode_one_clip: true
@@ -74,7 +71,7 @@ meta:
 model:
   model_name: vit_large
   pred_depth: 12
-  pred_embed_dim: 2560
+  pred_embed_dim: 384
   uniform_power: true
   use_mask_tokens: true
   zero_init_mask_tokens: true

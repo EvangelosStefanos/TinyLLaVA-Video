@@ -7,8 +7,7 @@ import jepa.src.models.predictor as ViTPredictor
 from jepa.src.models.utils.multimask import MultiMaskWrapper, PredictorMultiMaskWrapper
 from jepa.src.utils.tensors import trunc_normal_
 from jepa.src.masks.utils import apply_masks
-from tinyllava.vjepa.masks import Multiblock3DMaskGenerator, repeat_interleave_batch
-import tinyllava.vjepa.config as config
+from tinyllava.vjepa.masks import repeat_interleave_batch, MultiMaskGenerator
 
 
 def init_video_model(
@@ -67,8 +66,8 @@ def init_video_model(
     for m in predictor.modules():
         init_weights(m)
 
-    encoder.to(device)
-    predictor.to(device)
+    encoder.to('cpu')
+    predictor.to('cpu')
     print(encoder)
     print(predictor)
 
@@ -83,32 +82,27 @@ def init_video_model(
 
 class VJEPAModel(torch.nn.Module):
     def __init__(self, cfg):
-        super().__init__(cfg)
+        super().__init__()
         self.encoder, self.predictor = init_video_model(
-            uniform_power=config.uniform_power,
-            use_mask_tokens=config.use_mask_tokens,
-            num_mask_tokens=len(config.cfgs_mask),
-            zero_init_mask_tokens=config.zero_init_mask_tokens,
-            device=self.device,
-            patch_size=config.patch_size,
-            num_frames=config.num_frames,
-            tubelet_size=config.tubelet_size,
-            model_name=config.model_name,
-            crop_size=config.crop_size,
-            pred_depth=config.pred_depth,
-            pred_embed_dim=config.pred_embed_dim,
-            use_sdpa=config.use_sdpa,
+            uniform_power=cfg['uniform_power'],
+            use_mask_tokens=cfg['use_mask_tokens'],
+            num_mask_tokens=len(cfg['cfgs_mask']),
+            zero_init_mask_tokens=cfg['zero_init_mask_tokens'],
+            device=torch.device('cpu')
+            patch_size=cfg['patch_size'],
+            num_frames=cfg['num_frames'],
+            tubelet_size=cfg['tubelet_size'],
+            model_name=cfg['model_name'],
+            crop_size=cfg['crop_size'],
+            pred_depth=cfg['pred_depth'],
+            pred_embed_dim=cfg['pred_embed_dim'],
+            use_sdpa=cfg['use_sdpa'],
         )
-        self.target_encoder = copy.deepcopy(self._vision_tower.encoder)
+        self.target_encoder = copy.deepcopy(self.encoder)
         self.target_encoder.requires_grad_(False)
-        self.mask_generator = Multiblock3DMaskGenerator(
-            config.cfgs_mask,
-            crop_size=config.crop_size,
-            num_frames=config.num_frames,
-            patch_size=config.patch_size,
-            tubelet_size=config.tubelet_size,
-        )
-        self.cfg = config
+
+        self.mask_generators = MultiMaskGenerator(cfg)
+        self.cfg = cfg
         return
 
 
@@ -158,7 +152,7 @@ class VJEPAModel(torch.nn.Module):
             with num_clips {self.config.num_clips} and num_frames {self.config.num_frames}'
         x = x.permute((0, 2, 1, 3, 4)).view(B * self.config.num_clips, C, -1, H, W) # split into multiple clips if num_clips > 1
         
-        masks_enc, masks_pred = self.mask_generator(x) # TODO: Test to ensure that masking is done correctly.
+        masks_enc, masks_pred = self.mask_generators(B) # TODO: Test to ensure that masking is done correctly.
         print(f'masks_enc shape: {masks_enc[0].shape}, masks_pred shape: {masks_pred[0].shape}')
 
         # use the same mask for all clips of the same video
@@ -186,7 +180,7 @@ class VJEPAModel(torch.nn.Module):
 
         self.loss = self.loss_fn(z, h, masks_pred)
 
-        return z # TODO: return only one masked prediction in case of multi-mask training.
+        return z[0] # TODO: return only one masked prediction in case of multi-mask training.
 
 
     def loss_fn(self, z, h, masks_pred):

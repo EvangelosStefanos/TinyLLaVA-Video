@@ -232,8 +232,8 @@ class LLaVATrainer(Trainer):
 from transformers import TrainerCallback
 class EMACallback(TrainerCallback):
     def __init__(self, cfg):
-        self.momentum_scheduler = (cfg.ema[0] + i*(cfg.ema[1]-cfg.ema[0])/(cfg.ipe*cfg.num_epochs*cfg.ipe_scale)
-                for i in range(int(cfg.ipe*cfg.num_epochs*cfg.ipe_scale)+1))
+        self.momentum_scheduler = (cfg['ema'][0] + i*(cfg['ema'][1]-cfg['ema'][0])/(cfg['ipe']*cfg['num_epochs']*cfg['ipe_scale'])
+                for i in range(int(cfg['ipe']*cfg['num_epochs']*cfg['ipe_scale'])+1))
         return
     def on_train_end(self, args, state, control, **kwargs):
         kwargs['model'].ema_update(self.momentum_scheduler)

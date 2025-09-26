@@ -1,6 +1,32 @@
 import math
 import torch
 
+class MultiMaskGenerator:
+    def __init__(self, config):
+        self.mask_generators = []
+        for m in config['cfgs_mask']:
+            assert config['mask_type'] == 'multiblock3d', 'Only "multiblock3d" mask type is supported.'
+            mask_generator = Multiblock3DMaskGenerator(
+                crop_size=config['crop_size'],
+                num_frames=config['num_frames'],
+                spatial_patch_size=config['patch_size'],
+                temporal_patch_size=config['tubelet_size'],
+                spatial_pred_mask_scale=m.get('spatial_scale'),
+                temporal_pred_mask_scale=m.get('temporal_scale'),
+                aspect_ratio=m.get('aspect_ratio'),
+                npred=m.get('num_blocks'),
+                max_context_frames_ratio=m.get('max_temporal_keep', 1.0),
+                max_keep=m.get('max_keep', None),
+            )
+            self.mask_generators.append(mask_generator)
+        return
+    def __call__(self, batch_size):
+        total_masks_enc, total_masks_pred = [], []
+        for mask_generator in self.mask_generators:
+            masks_enc, masks_pred = mask_generator.generate_masks(batch_size)
+            total_masks_enc.append(masks_enc)
+            total_masks_pred.append(masks_pred)
+        return total_masks_enc, total_masks_pred
 
 class Multiblock3DMaskGenerator:
     def __init__(
@@ -19,7 +45,7 @@ class Multiblock3DMaskGenerator:
         if not isinstance(crop_size, tuple):
             crop_size = (crop_size,) * 2
         self.crop_size = crop_size
-        self.height, self.width = crop_size[0] // spatial_patch_size[0], crop_size[1] // spatial_patch_size[1]
+        self.height, self.width = crop_size[0] // spatial_patch_size, crop_size[1] // spatial_patch_size
         self.duration = num_frames // temporal_patch_size
 
         self.aspect_ratio = aspect_ratio
@@ -172,8 +198,8 @@ class _MaskGenerator:
         if not isinstance(crop_size, tuple):
             crop_size = (crop_size, ) * 2
 
-        self.height = crop_size[0] // spatial_patch_size[0]
-        self.width = crop_size[1] // spatial_patch_size[1]
+        self.height = crop_size[0] // spatial_patch_size
+        self.width = crop_size[1] // spatial_patch_size
         self.duration = num_frames // temporal_patch_size
 
         self.num_patches_spatial = self.height * self.width

@@ -4,7 +4,7 @@ import torch
 _GLOBAL_SEED = 0
 
 class VJEPAConfig:
-    def __init__(self):
+    def __init__(self, pred_embed_dim):
         fname = 'jepa/configs/pretrain/vitl16.yaml'
         print(f'called-params {fname}')
         # Load config
@@ -15,6 +15,20 @@ class VJEPAConfig:
         
         args = params
         resume_preempt = False
+        
+        args['model']['pred_embed_dim'] = pred_embed_dim
+        
+        def recursive_flatten(d, u):
+            for k, v in u.items():
+                assert k not in d, f'Duplicate key {k} found in config!'
+                d[k] = v
+                if isinstance(v, dict):
+                    recursive_flatten(d, v)
+            return d
+        
+        self.flat = recursive_flatten({}, args)
+        self.flat['cfgs_mask'] = args.get('mask')
+        self.flat['num_epochs'] = args.get('optimization').get('epochs')
 
         # -- META
         self.cfgs_meta = args.get('meta')
@@ -107,4 +121,5 @@ class VJEPAConfig:
         self.tag = self.cfgs_logging.get('write_tag')
         return
 
-VJEPAConfig = VJEPAConfig()
+def get_vjepa_config(pred_embed_dim):
+    return VJEPAConfig(pred_embed_dim).flat
