@@ -88,7 +88,7 @@ class VJEPAModel(torch.nn.Module):
             use_mask_tokens=cfg['use_mask_tokens'],
             num_mask_tokens=len(cfg['cfgs_mask']),
             zero_init_mask_tokens=cfg['zero_init_mask_tokens'],
-            device=torch.device('cpu')
+            device=torch.device('cpu'),
             patch_size=cfg['patch_size'],
             num_frames=cfg['num_frames'],
             tubelet_size=cfg['tubelet_size'],

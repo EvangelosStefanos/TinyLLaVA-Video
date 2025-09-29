@@ -17,18 +17,6 @@ class VJEPAConfig:
         resume_preempt = False
         
         args['model']['pred_embed_dim'] = pred_embed_dim
-        
-        def recursive_flatten(d, u):
-            for k, v in u.items():
-                assert k not in d, f'Duplicate key {k} found in config!'
-                d[k] = v
-                if isinstance(v, dict):
-                    recursive_flatten(d, v)
-            return d
-        
-        self.flat = recursive_flatten({}, args)
-        self.flat['cfgs_mask'] = args.get('mask')
-        self.flat['num_epochs'] = args.get('optimization').get('epochs')
 
         # -- META
         self.cfgs_meta = args.get('meta')
@@ -119,7 +107,21 @@ class VJEPAConfig:
         self.cfgs_logging = args.get('logging')
         self.folder = self.cfgs_logging.get('folder')
         self.tag = self.cfgs_logging.get('write_tag')
+
+        
+        def recursive_flatten(d, u):
+            for k, v in u.items():
+                assert k not in d.keys(), f'Key "{k}" already exists in "{d.keys()}"!'
+                d[k] = v
+                if isinstance(v, dict):
+                    d = recursive_flatten(d, v)
+            return d
+        
+        # print(self.__dict__)
+        # self.flat = recursive_flatten({}, self.__dict__)
+        # self.flat['cfgs_mask'] = args.get('mask')
+        # self.flat['num_epochs'] = args.get('optimization').get('epochs')
         return
 
 def get_vjepa_config(pred_embed_dim):
-    return VJEPAConfig(pred_embed_dim).flat
+    return VJEPAConfig(pred_embed_dim).__dict__

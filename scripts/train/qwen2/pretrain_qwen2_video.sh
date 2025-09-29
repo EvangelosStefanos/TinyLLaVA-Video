@@ -41,9 +41,9 @@ deepspeed --include localhost:0,1 --master_port 29501 tinyllava/train/train.py \
     --bf16 True \
     --training_recipe $TRAIN_RECIPE \
     --tune_type_llm frozen \
-    --tune_type_vision_tower frozen \
+    --tune_type_vision_tower full \
     --tune_vision_tower_from_layer 0 \
-    --tune_type_connector full \
+    --tune_type_connector frozen \
     --output_dir /app/output/result/llava_video_factory/tiny-llava-${LLM_VARIANT}-${VT_VARIANT}-${VERSION}-pretrain \
     --num_train_epochs 1 \
     --per_device_train_batch_size 2 \
