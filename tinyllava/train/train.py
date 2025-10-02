@@ -55,6 +55,8 @@ def train():
         (ModelArguments, DataArguments, TrainingArguments))
     model_arguments, data_arguments, training_arguments = parser.parse_args_into_dataclasses()
     
+    resume_from_checkpoint = os.path.exists(getattr(training_arguments, 'output_dir', None))
+    
     logger_setting(getattr(training_arguments, 'output_dir', None))
 
     training_recipe = TrainingRecipeFactory(training_arguments.training_recipe)(training_arguments) 
@@ -63,8 +65,9 @@ def train():
     model_args = training_recipe.add_args(model_args)
     model_config = TinyLlavaConfig()
     model_config.load_from_config(model_arguments)
-    vjepa_config = get_vjepa_config(model_config.hidden_size)
-    model_config.vision_config.vjepa = vjepa_config
+
+    print(model_config)
+
     model = TinyLlavaForConditionalGeneration(model_config)
     model.to('cuda')
     # load pretrained checkpoint
@@ -86,12 +89,19 @@ def train():
     data_arguments.data_folder = data_arguments.video_folder
     video_data_module = make_supervised_data_module(tokenizer=tokenizer,
                                                     data_args=data_arguments)
+    callbacks = []
+    try:
+        callbacks.append(EMACallback(model_config.vision_config.vjepa))
+    except AttributeError:
+        pass
+        
     trainer = LLaVATrainer(model=model, #does not require model.to(device), huggingface/deepspeed does it for you?
                             tokenizer=tokenizer,
                             args=training_arguments,
-                            callbacks=[EMACallback(vjepa_config)],
+                            callbacks=callbacks,
                             **video_data_module)
-    trainer.train()
+
+    trainer.train(resume_from_checkpoint=resume_from_checkpoint)
     
     training_recipe.save(model, trainer)
 

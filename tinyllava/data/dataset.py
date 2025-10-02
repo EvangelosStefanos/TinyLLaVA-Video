@@ -30,12 +30,11 @@ class LazySupervisedDataset(Dataset):
         super(LazySupervisedDataset, self).__init__()
         list_data_dict = json.load(open(data_path, "r"))
 
+
         # filter data based on data_source #
-        print(len(list_data_dict))
         DATA_SOURCE_KEY = 'data_source'
         DATA_SOURCE_LIST = ['0_30_s_academic_v0_1', '30_60_s_academic_v0_1', '0_30_s_youtube_v0_1', '30_60_s_youtube_v0_1']
         list_data_dict = [x for x in list_data_dict if DATA_SOURCE_KEY in x and x[DATA_SOURCE_KEY] in DATA_SOURCE_LIST]
-        print(len(list_data_dict))
         assert len(list_data_dict) > 0, f'No data found in {data_path}'
         # ensure all videos exist #
         paths = []
@@ -45,6 +44,7 @@ class LazySupervisedDataset(Dataset):
                 if not os.path.exists(path):
                     paths.append(path)
         assert len(paths) == 0, f'{len(paths)} videos not found in {data_args.video_folder}, e.g., {paths[0]}'
+
 
         self.tokenizer = tokenizer
         self.list_data_dict = list_data_dict

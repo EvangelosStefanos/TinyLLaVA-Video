@@ -1,6 +1,8 @@
 from . import register_vision_tower
 from .base import VisionTower
 from tinyllava.vjepa.model import VJEPAModel
+from transformers import SiglipImageProcessor
+
 
 
 @register_vision_tower('vjepa')
@@ -8,7 +10,7 @@ class VJEPAVisionTower(VisionTower):
     def __init__(self, cfg):
         super().__init__(cfg)
         self._vision_tower = VJEPAModel(cfg.vjepa)
-        self._image_processor = None # TODO: figure out what this is supposed to do and implement it if necessary.
+        self._image_processor = SiglipImageProcessor.from_pretrained(cfg.model_name_or_path)
         self.config = cfg
         return
 

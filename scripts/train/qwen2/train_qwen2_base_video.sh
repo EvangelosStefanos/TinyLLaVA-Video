@@ -4,9 +4,10 @@ VIDEO_PATH=/app/data/dataset #pretrain image dir
 FINETUNE_VIDEO_PATH=/app/data/dataset #finetune image dir
 
 LLM_VERSION=Qwen/Qwen2-0.5B # llm path
+# VT_VERSION=google/siglip-so400m-patch14-384 #vision tower path
 VT_VERSION=checkpoints/vjepa #vision tower path
 VT_VERSION2="" #if you are not using mof vision tower, keep it empty
-CN_VERSION=nullresampler #connector type
+CN_VERSION=groupresampler #connector type
 CONV_VERSION=qwen2_base #chat template
 VERSION=base #experiment name for recording different runnings
 TRAIN_RECIPE=common #training recipes

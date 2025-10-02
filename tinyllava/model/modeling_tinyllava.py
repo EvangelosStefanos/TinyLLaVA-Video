@@ -70,6 +70,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             use_fast = config.tokenizer_use_fast,
         ))
         self.post_init()
+        self.VJEPA_ONLY = False
 
     
     def get_input_embeddings(self):
@@ -139,6 +140,9 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
                 image_sizes
             )
         
+        if self.VJEPA_ONLY:
+            return (self.vision_tower.get_loss(), None, None, None, None)
+        
         output = self.language_model.forward(
             input_ids=input_ids,
             attention_mask=attention_mask,
@@ -151,7 +155,13 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict
         )
-        output["loss"] = self.vision_tower.get_loss()
+        try:
+            llm_loss = output['loss']
+            jepa_loss = self.vision_tower.get_loss()
+            output['loss'] = llm_loss + jepa_loss
+            print(f"loss: {output['loss']:.3f}, llm loss: {llm_loss:.3f}, jepa loss: {jepa_loss:.3f}")
+        except AttributeError:
+            pass
         return output
     
     def ema_update(self, momentum_scheduler):
@@ -205,18 +215,18 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
     
     def encode_videos(self, videos):
         # videos: torch.Size([bs, frame, 3, 384, 384])
-        # return: tensor torch.Size([bs, 1024, 2560])
+        # return: tensor torch.Size([bs, num_tokens, D])
         kwargs = {}
         kwargs['vision_feature_layer'] = self.config.vision_feature_layer
         kwargs['vision_feature_select_strategy'] = self.config.vision_feature_select_strategy
         image_features = []
         for video in videos:
             video = video.to(device=self.device, dtype=self.dtype) #torch.Size([frame, 3, 384, 384])
-            image_feature = self.vision_tower(video.unsqueeze(0), **kwargs) # [1, num_masked_tokens, D]
-            # last_dim = image_feature.shape[-1]
-            # image_feature = image_feature.reshape(1, -1, last_dim) #torch.Size([1, frame*728, 1152])
-            # TODO: try to remove the connector by aligning image feature dim with LLM dim?
-            image_feature = self.connector(image_feature) # [1, num_masked_tokens, D])
+            image_feature = self.vision_tower(video, **kwargs) # [1, num_masked_tokens, D]
+            last_dim = image_feature.shape[-1]
+            image_feature = image_feature.reshape(1, -1, last_dim) #torch.Size([1, frame*728, 1152])
+            if not self.VJEPA_ONLY:
+                image_feature = self.connector(image_feature) # [1, num_masked_tokens, D])
             image_features.append(image_feature)
         image_features = torch.cat(image_features, dim=0) # [B, num_masked_tokens, D]
         return image_features

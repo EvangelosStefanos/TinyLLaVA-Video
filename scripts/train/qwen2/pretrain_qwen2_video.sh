@@ -46,22 +46,24 @@ deepspeed --include localhost:0,1 --master_port 29501 tinyllava/train/train.py \
     --tune_type_connector frozen \
     --output_dir /app/output/result/llava_video_factory/tiny-llava-${LLM_VARIANT}-${VT_VARIANT}-${VERSION}-pretrain \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 2 \
+    --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps 32 \
+    --gradient_accumulation_steps 64 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
-    --save_steps 24000 \
+    --save_steps 50 \
     --save_total_limit 1 \
-    --learning_rate 1e-4 \
-    --weight_decay 0. \
-    --warmup_ratio 0.03 \
+    --load_best_model_at_end True \
+    --max_grad_norm 10 \
+    --learning_rate 2e-4 \
+    --weight_decay 0.04 \
+    --warmup_ratio 0.1 \
     --lr_scheduler_type "cosine" \
     --logging_steps 1 \
     --tf32 False \
     --model_max_length $MODEL_MAX_LENGTH \
     --gradient_checkpointing True \
-    --dataloader_num_workers 8 \
+    --dataloader_num_workers 2 \
     --lazy_preprocess True \
     --report_to tensorboard \
     --tokenizer_use_fast False \

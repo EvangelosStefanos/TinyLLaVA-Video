@@ -22,6 +22,7 @@ GROUP="${13}"
 VT_VARIANT="${VT_VERSION##*/}"
 LLM_VARIANT="${LLM_VERSION##*/}"
 
+# TODO: update arguments similar to pretrain
 deepspeed --include localhost:0,1 --master_port 29501 tinyllava/train/train.py \
     --deepspeed ./scripts/zero3.json \
     --video_data_path  $VIDEO_DATA_PATH \
@@ -40,17 +41,17 @@ deepspeed --include localhost:0,1 --master_port 29501 tinyllava/train/train.py \
     --attn_implementation flash_attention_2 \
     --bf16 True \
     --training_recipe $TRAIN_RECIPE \
-    --tune_type_llm frozen \
-    --tune_type_vision_tower full \
+    --tune_type_llm full \
+    --tune_type_vision_tower frozen \
     --tune_vision_tower_from_layer 0 \
-    --tune_type_connector frozen \
+    --tune_type_connector full \
     --group_by_modality_length False \
     --pretrained_model_path /app/output/result/llava_video_factory/tiny-llava-${LLM_VARIANT}-${VT_VARIANT}-${VERSION}-pretrain \
     --output_dir /app/output/result/llava_video_factory/tiny-llava-${LLM_VARIANT}-${VT_VARIANT}-${VERSION}-finetune \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 2 \
+    --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps 16 \
+    --gradient_accumulation_steps 32 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 50000 \

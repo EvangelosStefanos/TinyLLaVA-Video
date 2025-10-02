@@ -144,29 +144,28 @@ class VJEPAModel(torch.nn.Module):
 
 
     def forward(self, x, **kwargs):
-        # x: frames of shape [B, T, C, H, W]
+        # x: frames of shape [T, C, H, W]
         # return: tensor of shape [B, N, D] a compressed representation of tokens
+        x = x.unsqueeze(0)
         B, T, C, H, W = x.shape
+        
         # T must be divisible by num_clips # TODO: [low priority] pad the video if not divisible.
-        assert T % self.config.num_clips == 0, f'Input video length {T} not compatible \
-            with num_clips {self.config.num_clips} and num_frames {self.config.num_frames}'
-        x = x.permute((0, 2, 1, 3, 4)).view(B * self.config.num_clips, C, -1, H, W) # split into multiple clips if num_clips > 1
+        assert T % self.cfg['num_clips'] == 0, f"Input video length {T} not compatible \
+            with num_clips {self.cfg['num_clips']} and num_frames {self.cfg['num_frames']}"
+        x = x.permute((0, 2, 1, 3, 4)).view(B * self.cfg['num_clips'], C, -1, H, W) # split into multiple clips if num_clips > 1
         
         masks_enc, masks_pred = self.mask_generators(B) # TODO: Test to ensure that masking is done correctly.
-        print(f'masks_enc shape: {masks_enc[0].shape}, masks_pred shape: {masks_pred[0].shape}')
 
         # use the same mask for all clips of the same video
-        masks_enc = masks_enc[::self.config.num_clips]
-        masks_pred = masks_pred[::self.config.num_clips]
+        masks_enc = masks_enc[::self.cfg['num_clips']]
+        masks_pred = masks_pred[::self.cfg['num_clips']]
         
-        for mask in masks_enc:
-            mask = mask.to(self.device)
-        for mask in masks_pred:
-            mask = mask.to(self.device)
+        for i in range(len(masks_enc)):
+            masks_enc[i] = masks_enc[i].to(x.device)
+            masks_pred[i] = masks_pred[i].to(x.device)
 
-        masks_enc = [repeat_interleave_batch(m, B, self.config.num_clips) for m in masks_enc]
-        masks_pred = [repeat_interleave_batch(m, B, self.config.num_clips) for m in masks_pred]
-        print(f'masks_enc shape: {masks_enc[0].shape}, masks_pred shape: {masks_pred[0].shape}')
+        masks_enc = [repeat_interleave_batch(m, B, self.cfg['num_clips']) for m in masks_enc]
+        masks_pred = [repeat_interleave_batch(m, B, self.cfg['num_clips']) for m in masks_pred]
         
         # Forward target encoder (no grad)
         with torch.no_grad():
@@ -179,7 +178,6 @@ class VJEPAModel(torch.nn.Module):
         z = self.predictor(z, h, masks_enc, masks_pred) # list (len=num_masks) of tensors of shape [B * num_clips, num_masked_tokens, D]
 
         self.loss = self.loss_fn(z, h, masks_pred)
-
         return z[0] # TODO: return only one masked prediction in case of multi-mask training.
 
 
@@ -187,14 +185,14 @@ class VJEPAModel(torch.nn.Module):
         # Loss
         loss_jepa = 0.
         for zi, hi in zip(z, h):
-            loss_jepa += torch.mean(torch.abs(zi - hi)**self.config.loss_exp) / self.config.loss_exp
+            loss_jepa += torch.mean(torch.abs(zi - hi)**self.cfg['loss_exp']) / self.cfg['loss_exp']
         loss_jepa /= len(masks_pred)
 
         # Regularization
         pstd_z = sum([torch.sqrt(zi.var(dim=1) + 0.0001) for zi in z]) / len(z)
         loss_reg = torch.mean(F.relu(1.-pstd_z))
         
-        return loss_jepa + self.config.reg_coeff * loss_reg
+        return loss_jepa + self.cfg['reg_coeff'] * loss_reg
     
     
     def get_loss(self):
