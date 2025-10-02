@@ -70,7 +70,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             use_fast = config.tokenizer_use_fast,
         ))
         self.post_init()
-        self.VJEPA_ONLY = False
+        self.VJEPA_ONLY = True
 
     
     def get_input_embeddings(self):
@@ -225,8 +225,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             image_feature = self.vision_tower(video, **kwargs) # [1, num_masked_tokens, D]
             last_dim = image_feature.shape[-1]
             image_feature = image_feature.reshape(1, -1, last_dim) #torch.Size([1, frame*728, 1152])
-            if not self.VJEPA_ONLY:
-                image_feature = self.connector(image_feature) # [1, num_masked_tokens, D])
+            image_feature = self.connector(image_feature) # [1, num_masked_tokens, D])
             image_features.append(image_feature)
         image_features = torch.cat(image_features, dim=0) # [B, num_masked_tokens, D]
         return image_features

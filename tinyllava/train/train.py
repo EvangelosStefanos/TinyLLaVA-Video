@@ -55,8 +55,6 @@ def train():
         (ModelArguments, DataArguments, TrainingArguments))
     model_arguments, data_arguments, training_arguments = parser.parse_args_into_dataclasses()
     
-    resume_from_checkpoint = os.path.exists(getattr(training_arguments, 'output_dir', None))
-    
     logger_setting(getattr(training_arguments, 'output_dir', None))
 
     training_recipe = TrainingRecipeFactory(training_arguments.training_recipe)(training_arguments) 
@@ -101,7 +99,7 @@ def train():
                             callbacks=callbacks,
                             **video_data_module)
 
-    trainer.train(resume_from_checkpoint=resume_from_checkpoint)
+    trainer.train()
     
     training_recipe.save(model, trainer)
 

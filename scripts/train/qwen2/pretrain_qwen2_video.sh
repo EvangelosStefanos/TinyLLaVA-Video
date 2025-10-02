@@ -53,7 +53,6 @@ deepspeed --include localhost:0,1 --master_port 29501 tinyllava/train/train.py \
     --save_strategy "steps" \
     --save_steps 50 \
     --save_total_limit 1 \
-    --load_best_model_at_end True \
     --max_grad_norm 10 \
     --learning_rate 2e-4 \
     --weight_decay 0.04 \
