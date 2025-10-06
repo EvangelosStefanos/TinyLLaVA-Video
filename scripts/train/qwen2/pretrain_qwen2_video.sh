@@ -22,7 +22,8 @@ GROUP="${12}"
 VT_VARIANT="${VT_VERSION##*/}"
 LLM_VARIANT="${LLM_VERSION##*/}"
 
-deepspeed --include localhost:0,1 --master_port 29501 tinyllava/train/train.py \
+# num_gpus * per_device_train_batch_size * gradient_accumulation_steps = 128
+deepspeed --include localhost:0,1,2 --master_port 29501 tinyllava/train/train.py \
     --deepspeed ./scripts/zero3.json \
     --video_data_path  $VIDEO_DATA_PATH \
     --video_folder $VIDEO_PATH \
@@ -62,7 +63,7 @@ deepspeed --include localhost:0,1 --master_port 29501 tinyllava/train/train.py \
     --tf32 False \
     --model_max_length $MODEL_MAX_LENGTH \
     --gradient_checkpointing True \
-    --dataloader_num_workers 2 \
+    --dataloader_num_workers 8 \
     --lazy_preprocess True \
     --report_to tensorboard \
     --tokenizer_use_fast False \

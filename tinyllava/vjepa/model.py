@@ -83,6 +83,16 @@ def init_video_model(
 class VJEPAModel(torch.nn.Module):
     def __init__(self, cfg):
         super().__init__()
+        if cfg['which_dtype'].lower() == 'bfloat16':
+            self.dtype = torch.bfloat16
+            self.mixed_precision = True
+        elif cfg['which_dtype'].lower() == 'float16':
+            self.dtype = torch.float16
+            self.mixed_precision = True
+        else:
+            self.dtype = torch.float32
+            self.mixed_precision = False
+
         self.encoder, self.predictor = init_video_model(
             uniform_power=cfg['uniform_power'],
             use_mask_tokens=cfg['use_mask_tokens'],
@@ -103,6 +113,7 @@ class VJEPAModel(torch.nn.Module):
 
         self.mask_generators = MultiMaskGenerator(cfg)
         self.cfg = cfg
+        # self.compression_ratios = []
         return
 
 
@@ -167,17 +178,24 @@ class VJEPAModel(torch.nn.Module):
         masks_enc = [repeat_interleave_batch(m, B, self.cfg['num_clips']) for m in masks_enc]
         masks_pred = [repeat_interleave_batch(m, B, self.cfg['num_clips']) for m in masks_pred]
         
-        # Forward target encoder (no grad)
-        with torch.no_grad():
-            h = self.target_encoder(x)
-            h = F.layer_norm(h, (h.size(-1),))
-            h = apply_masks(h, masks_pred, concat=False)
+        with torch.cuda.amp.autocast(dtype=self.dtype, enabled=self.mixed_precision):
+            # Forward target encoder (no grad)
+            with torch.no_grad():
+                h = self.target_encoder(x)
+                h = F.layer_norm(h, (h.size(-1),))
+                h = apply_masks(h, masks_pred, concat=False)
 
-        # Forward encoder and predictor
-        z = self.encoder(x, masks_enc) # list (len=num_masks) of tensors of shape [B * num_clips, num_unmasked_tokens, D]
-        z = self.predictor(z, h, masks_enc, masks_pred) # list (len=num_masks) of tensors of shape [B * num_clips, num_masked_tokens, D]
+            # Forward encoder and predictor
+            z = self.encoder(x, masks_enc) # list (len=num_masks) of tensors of shape [B * num_clips, num_unmasked_tokens, D]
+            z = self.predictor(z, h, masks_enc, masks_pred) # list (len=num_masks) of tensors of shape [B * num_clips, num_masked_tokens, D]
 
-        self.loss = self.loss_fn(z, h, masks_pred)
+            self.loss = self.loss_fn(z, h, masks_pred)
+            
+        # self.compression_ratios.append(masks_pred[0].shape[1] / (masks_enc[0].shape[1] + masks_pred[0].shape[1]))
+        # if len(self.compression_ratios) % 100 == 99:
+        #     print(f"token retention rate avg = {sum(self.compression_ratios) / len(self.compression_ratios):.3f}")
+        #     self.compression_ratios = []
+
         return z[0] # TODO: return only one masked prediction in case of multi-mask training.
 
 
@@ -200,6 +218,8 @@ class VJEPAModel(torch.nn.Module):
     
     
     def ema_update(self, momentum_scheduler):
+        if not self.encoder.requires_grad:
+            return
         m = next(momentum_scheduler)
         with torch.no_grad():
             for param_q, param_k in zip(self.encoder.parameters(), self.target_encoder.parameters()):

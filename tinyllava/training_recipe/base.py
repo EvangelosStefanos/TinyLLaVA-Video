@@ -106,6 +106,7 @@ class BaseTrainingRecipe:
             if trainer.deepspeed:
                 torch.cuda.synchronize()
             trainer.save_model(self.training_arguments.output_dir)
+            print(f'Saved to {self.training_arguments.output_dir}.')
             return
         
         #the followings are for pretrain stage
@@ -117,6 +118,7 @@ class BaseTrainingRecipe:
             language_model_output_path = os.path.join(self.training_arguments.output_dir, 'language_model/pytorch_model.bin')
             torch.save(language_model_state_dict, language_model_output_path)
             model.config.text_config.save_pretrained(language_model_output_dir, from_pt=True)
+            print(f'Saved to {language_model_output_path}.')
         #save vision tower
         vision_tower_state_dict = get_state_maybe_zero_3(model.vision_tower._vision_tower.named_parameters(), [''], False)
         if trainer.args.local_rank == 0 or trainer.args.local_rank == -1:
@@ -124,6 +126,7 @@ class BaseTrainingRecipe:
             os.makedirs(vision_tower_output_dir, exist_ok=True)
             vision_tower_output_path = os.path.join(self.training_arguments.output_dir, 'vision_tower/pytorch_model.bin')
             torch.save(vision_tower_state_dict, vision_tower_output_path)
+            print(f'Saved to {vision_tower_output_path}.')
             if isinstance(model.vision_tower._vision_tower, PreTrainedModel):
                 model.vision_tower._vision_tower.config.save_pretrained(vision_tower_output_dir, from_pt=True)
         #save connector
@@ -133,6 +136,7 @@ class BaseTrainingRecipe:
             os.makedirs(connector_output_dir, exist_ok=True)
             connector_output_path = os.path.join(self.training_arguments.output_dir, 'connector/pytorch_model.bin')
             torch.save(connector_state_dict, connector_output_path)
+            print(f'Saved to {connector_output_path}.')
     
     
 

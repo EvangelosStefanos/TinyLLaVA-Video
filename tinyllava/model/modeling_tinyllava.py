@@ -56,6 +56,8 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
     def __init__(self, config: TinyLlavaConfig):
         
         super().__init__(config)
+        
+        self.tune_type_vision_tower = config.tune_type_vision_tower
 
         self.language_model = LLMFactory(config.llm_model_name_or_path)[0](config.text_config)
         self.vision_tower = VisionTowerFactory(config.vision_model_name_or_path)(config.vision_config)
@@ -70,7 +72,6 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             use_fast = config.tokenizer_use_fast,
         ))
         self.post_init()
-        self.VJEPA_ONLY = True
 
     
     def get_input_embeddings(self):
@@ -140,7 +141,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
                 image_sizes
             )
         
-        if self.VJEPA_ONLY:
+        if self.tune_type_vision_tower.lower() == 'full':
             return (self.vision_tower.get_loss(), None, None, None, None)
         
         output = self.language_model.forward(
@@ -155,13 +156,6 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict
         )
-        try:
-            llm_loss = output['loss']
-            jepa_loss = self.vision_tower.get_loss()
-            output['loss'] = llm_loss + jepa_loss
-            print(f"loss: {output['loss']:.3f}, llm loss: {llm_loss:.3f}, jepa loss: {jepa_loss:.3f}")
-        except AttributeError:
-            pass
         return output
     
     def ema_update(self, momentum_scheduler):
@@ -228,6 +222,7 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
             image_feature = self.connector(image_feature) # [1, num_masked_tokens, D])
             image_features.append(image_feature)
         image_features = torch.cat(image_features, dim=0) # [B, num_masked_tokens, D]
+        # image_features = torch.nn.utils.rnn.pad_sequence(image_features, batch_first=True) # [B, max_num_masked_tokens, D] # for batch size > 1, unsupported in current version
         return image_features
     
     
@@ -400,6 +395,9 @@ class TinyLlavaForConditionalGeneration(TinyLlavaPreTrainedModel):
         
     def load_vision_tower(self, **kwargs):
         vision_tower_name = get_value_from_kwargs(kwargs, 'model_name_or_path')
+        pretrained_path = get_value_from_kwargs(kwargs, 'pretrained_vision_tower_path')
+        if pretrained_path is not None:
+            vision_tower_name = pretrained_path
         self.vision_tower.load_model(vision_tower_name, **kwargs)
         
     def load_connector(self, **kwargs):

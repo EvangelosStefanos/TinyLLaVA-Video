@@ -230,6 +230,19 @@ class LLaVATrainer(Trainer):
 
 
 from transformers import TrainerCallback
+
+
+class SaveCallback(TrainerCallback):
+    def __init__(self, training_recipe, model, trainer):
+        self.training_recipe = training_recipe
+        self.model = model
+        self.trainer = trainer
+        return
+    def on_save(self, args, state, control, **kwargs):
+        self.training_recipe.save(self.model, self.trainer)
+        return
+
+
 class EMACallback(TrainerCallback):
     def __init__(self, cfg):
         self.momentum_scheduler = (cfg['ema'][0] + i*(cfg['ema'][1]-cfg['ema'][0])/(cfg['ipe']*cfg['num_epochs']*cfg['ipe_scale'])

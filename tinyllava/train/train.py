@@ -5,13 +5,11 @@ import tokenizers
 import transformers
 
 
-from tinyllava.train.tinyllava_trainer import LLaVATrainer, EMACallback
+from tinyllava.train.tinyllava_trainer import LLaVATrainer, EMACallback, SaveCallback
 from tinyllava.training_recipe import TrainingRecipeFactory
 from tinyllava.utils import *
 from tinyllava.model import *
 from tinyllava.data.dataset import make_supervised_data_module
-
-from tinyllava.vjepa.config import get_vjepa_config
 
 IS_TOKENIZER_GREATER_THAN_0_14 = version.parse(tokenizers.__version__) >= version.parse('0.14')
 
@@ -64,7 +62,7 @@ def train():
     model_config = TinyLlavaConfig()
     model_config.load_from_config(model_arguments)
 
-    print(model_config)
+    # print(model_config)
 
     model = TinyLlavaForConditionalGeneration(model_config)
     model.to('cuda')
@@ -87,17 +85,18 @@ def train():
     data_arguments.data_folder = data_arguments.video_folder
     video_data_module = make_supervised_data_module(tokenizer=tokenizer,
                                                     data_args=data_arguments)
-    callbacks = []
-    try:
-        callbacks.append(EMACallback(model_config.vision_config.vjepa))
-    except AttributeError:
-        pass
         
     trainer = LLaVATrainer(model=model, #does not require model.to(device), huggingface/deepspeed does it for you?
                             tokenizer=tokenizer,
                             args=training_arguments,
-                            callbacks=callbacks,
                             **video_data_module)
+
+    try:
+        trainer.add_callback(EMACallback(model_config.vision_config.vjepa))
+    except AttributeError:
+        pass
+    
+    trainer.add_callback(SaveCallback(training_recipe, model, trainer))
 
     trainer.train()
     
